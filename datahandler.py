@@ -70,9 +70,9 @@ def pad_frames_list(radar1list: list, radar2list: list):
     '''
     # Pad width
     for frame in radar1list:
-        frame = data_framesize_padder_handler(frame, metadata.FRAME_SIZE)
+        frame = data_framesize_padder_handler(frame, metadata.FRAME_LENGTH)
     for frame in radar2list:
-        frame = data_framesize_padder_handler(frame, metadata.FRAME_SIZE)
+        frame = data_framesize_padder_handler(frame, metadata.FRAME_LENGTH)
 
     # torch_tensor_radar1 = data_frames_padder_handler(radar1list, metadata.FRAME_LENGTH, metadata.FRAME_SIZE)
     # torch_tensor_radar2 = data_frames_padder_handler(radar2list, metadata.FRAME_LENGTH, metadata.FRAME_SIZE)
