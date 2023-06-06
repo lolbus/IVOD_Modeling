@@ -1,0 +1,5 @@
+Run python run.py --bothradar_txt [INPUT bothradar.txt]
+
+For example: python run.py --bothradar_txt ./0_1.txt
+
+where ./0_1.txt is the bothradar.txt for inference
