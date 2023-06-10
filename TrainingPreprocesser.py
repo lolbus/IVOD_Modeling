@@ -33,7 +33,7 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
                 os.walk(f"{training_json_path_directory}/{c}/")):  # ROOT_DIR/CLASS_FOLDER/
             # check if 'Both Radar.txt' exists in the list of files
             if count >= instances_to_processed:
-                print(f"Finished processing {count+1} data instances. Current len {len(training_files)}")
+                print(f"Finished processing {count} data instances. Current len {len(training_files)}")
                 break
 
             if root.split("/")[-1].isdigit():
