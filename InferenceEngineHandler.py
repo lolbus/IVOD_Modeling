@@ -71,8 +71,11 @@ def live_inference_preprocess(radar1list, radar2list, dtype='torch.float32'):
     # Data Standardize
     torch_tensor = dh.standardize_tensor(torch_tensor)
 
+    # Image format
+    im = transforms.ToPILImage()(torch_tensor[0])
+
     time_take = time.time() - start
-    return torch_tensor, time_take
+    return torch_tensor, im, time_take
 
 
 def inference(model, inference_data, device='cpu'):
