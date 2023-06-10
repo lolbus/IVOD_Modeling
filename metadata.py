@@ -8,7 +8,7 @@ class DatasetMeta(object):
         self.RGB_MEAN_VALUES = (131.36865153/255.,  97.51712626/255., 124.85315563/255.)
         self.RGB_STD_VALUES = (130.43618906/255.,  81.93117782/255., 128.05481866/255.)
         self.FRAME_LENGTH = 149
-        self.FRAME_SIZE = 200
+        self.FRAME_SIZE = 180
         self.STR_TO_ONEHOT_LABELS = {"PassengerNo_1 (D)": str([1, 0, 0]),
                                      "PassengerNo_2 (D+FP)": str([1, 1, 0]),
                                      "PassengerNo_2 (D+LB)": str([1, 0, 1]),
