@@ -36,7 +36,7 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
                 if data_id in bad_data_folders:  # Skip folders that are in the blacklist
                     continue
             if 'Both Radar.txt' in files:
-                datainstance = [data_id, c, f"{root}/Both Radar.txt"]
+                datainstance = [data_id, c, f"{root}/Both Radar.txt", id_identity] # Each instance metadata is its data_id, the true label associated, its origin location and the original id identity when it was raw format
                 # print(f"Add data {datainstance}")
                 training_files.append(datainstance)
             elif root.split("/")[-1].isdigit() and not 'Both Radar.txt' in files:
