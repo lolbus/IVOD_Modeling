@@ -52,7 +52,7 @@ def generate_frames_list(json_list_file, max_len=149):
             except Exception as e:
                 print("Check data format:", i, e)
                 print(d)
-            if len(this_frame_points_list) == max_len:
+            if len(this_frame_points_list) == max_len: # Pad successfully!
                 this_data_radar1_frames_list.append(this_frame_points_list) if json_dict[
                                                                                    'name'] == 'radar1' else this_data_radar2_frames_list.append(
                     this_frame_points_list)

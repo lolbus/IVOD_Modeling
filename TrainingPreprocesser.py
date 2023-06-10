@@ -12,7 +12,7 @@ import time
 import numpy as np
 
 metadata = DatasetMeta()
-
+instances_each_class_desired = [5000, 10000, 5000, 0]
 
 def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
     '''
@@ -24,6 +24,8 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
 
     # loop over all D, D+FP and D+FP+LB folders, load all the related files into list object
     for i, c in enumerate(metadata.STR_LABELS_LIST):
+        instances_to_processed = instances_each_class_desired[i]
+        print(f"preparing {instances_to_processed} instances for class {c}")
         extra_data = metadata.EXTRA_DATA  # There are extra data instances (more than 10k) for some of the classes, for e.g (D) class has 34 extra instance
         start_id_for_this_class = i * 10000 + extra_data[
             i - 1] if i != 0 else 0  # 0-10033 for (D), 10034-20038 for (D+FP) 20039-30049 for (D+LB) 30050-40049(D+FP+LB)
@@ -42,7 +44,10 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
             elif root.split("/")[-1].isdigit() and not 'Both Radar.txt' in files:
                 bad_datainstance = [data_id, c, root]
                 print(f"Bad data detected!!!{bad_datainstance}. count {count} foldername {id_identity}")
-        # print(f"completed loading for class {c} {metadata.STR_TO_ONEHOT_LABELS[c]}. Total instances {count}")
+            if count+1 == instances_to_processed:
+                print(f"Finished processing {count+1}")
+                break
+        print(f"completed loading for class {c} {metadata.STR_TO_ONEHOT_LABELS[c]}. Total instances {len(training_files)}")
 
     time_take = time.time() - start
     return training_files, time_take
