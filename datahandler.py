@@ -92,8 +92,14 @@ def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="tor
     # print(d.size())
     if len(data_list) < frames_size:
         required_rows = frames_size - len(data_list)
-        padding_zeros = torch.zeros((required_rows, max_len, 3), dtype=eval(dtype))
-        d = torch.cat((d, padding_zeros))
+        #padding_zeros = torch.zeros((required_rows, max_len, 3), dtype=eval(dtype))
+        #d = torch.cat((d, padding_zeros))
+        indices = torch.randperm(d.shape[0])[:required_rows]  # randomly select rows and duplicate without replacement
+        rows_to_add = d[indices]
+        d = torch.cat((d, rows_to_add), dim=0)
+
+    elif len(data_list) > frames_size:
+        d = d[:frames_size]
 
     # Note: Method does not consider situation where frames exceed frame_size(200) and requires preprocessor to drop such data
     return d
