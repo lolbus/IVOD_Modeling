@@ -32,6 +32,10 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
         for count, (root, dirs, files) in enumerate(
                 os.walk(f"{training_json_path_directory}/{c}/")):  # ROOT_DIR/CLASS_FOLDER/
             # check if 'Both Radar.txt' exists in the list of files
+            if count >= instances_to_processed:
+                print(f"Finished processing {count+1} data instances. Current len {len(training_files)}")
+                break
+
             if root.split("/")[-1].isdigit():
                 id_identity = int(root.split("/")[-1])
                 data_id = start_id_for_this_class + id_identity
@@ -44,9 +48,7 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
             elif root.split("/")[-1].isdigit() and not 'Both Radar.txt' in files:
                 bad_datainstance = [data_id, c, root]
                 print(f"Bad data detected!!!{bad_datainstance}. count {count} foldername {id_identity}")
-            if count+1 == instances_to_processed:
-                print(f"Finished processing {count+1}")
-                break
+            
         print(f"completed loading for class {c} {metadata.STR_TO_ONEHOT_LABELS[c]}. Total instances {len(training_files)}")
 
     time_take = time.time() - start
