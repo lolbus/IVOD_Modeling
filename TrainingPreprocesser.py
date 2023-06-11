@@ -137,9 +137,9 @@ def training_preprocess(dataid, strclass, json_list_file, augmentation=False, wh
     torch_tensor = dh.tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, metadata.FRAME_SIZE,
                                      metadata.FRAME_LENGTH, dataidentity)
 
-    if torch_tensor.shape[0] != metadata.FRAME_SIZE:  # Failed to tensorize will return a tuple
+    if torch_tensor.shape[0] != metadata.FRAME_SIZE:  # Failed to tensorize will return a int
         print("returning int instance as this instance is undersized and has to be dropped")
-        return 1
+        return dataid, strclass, None, None, None, None
 
     # Data Normalize
     torch_tensor = dh.normalize_tensor(torch_tensor, max_values=metadata.RGB_MAX_VALUES,

@@ -100,11 +100,11 @@ def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="tor
             rows_to_add = d[indices]
             d = torch.cat((d, rows_to_add), dim=0)
         elif metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "DROP IF INSUFFICIENT FRAMES":
-            return []
+            return torch.tensor([], dtype=eval(dtype)), False
 
     elif len(data_list) > frames_size:
         d = d[:frames_size]
-    return d
+    return d, True
 
 
 def check_size_list(class_label: int, torch_tensor_radar1, torch_tensor_radar2, dataid: int):
@@ -127,8 +127,8 @@ def tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, f
     '''
     dataid = dataidentity[0]
     strclass = dataidentity[1]
-    torch_tensor_radar1 = data_frames_padder_handler(this_data_radar1_frames_list, frame_size, max_len)
-    torch_tensor_radar2 = data_frames_padder_handler(this_data_radar2_frames_list, frame_size, max_len)
+    torch_tensor_radar1, radar1_pad_success = data_frames_padder_handler(this_data_radar1_frames_list, frame_size, max_len)
+    torch_tensor_radar2, radar2_pad_success = data_frames_padder_handler(this_data_radar2_frames_list, frame_size, max_len)
 
     # Check if List len is acceptable
     '''check_size_list_result = check_size_list(metadata.STR_TO_CLASS_LABELS[strclass], torch_tensor_radar1,
@@ -137,9 +137,11 @@ def tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, f
         return (
         check_size_list_result[2], check_size_list_result[1])  # return bad data id, followed by reason as a tuple
     else:'''
-
-    torch_tensor = torch.cat((torch_tensor_radar1, torch_tensor_radar2), dim=1)
-    return torch_tensor
+    if radar1_pad_success and radar2_pad_success:
+        torch_tensor = torch.cat((torch_tensor_radar1, torch_tensor_radar2), dim=1)
+        return torch_tensor
+    else:
+        return torch.tensor([])
 
 
 # Preprocessing - normalize the images
