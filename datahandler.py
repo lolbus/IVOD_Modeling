@@ -100,7 +100,7 @@ def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="tor
             rows_to_add = d[indices]
             d = torch.cat((d, rows_to_add), dim=0)
         elif metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "DROP IF INSUFFICIENT FRAMES":
-            return = []
+            return []
 
     elif len(data_list) > frames_size:
         d = d[:frames_size]
