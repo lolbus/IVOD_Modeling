@@ -92,16 +92,18 @@ def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="tor
     # print(d.size())
     if len(data_list) < frames_size:
         required_rows = frames_size - len(data_list)
-        #padding_zeros = torch.zeros((required_rows, max_len, 3), dtype=eval(dtype))
-        #d = torch.cat((d, padding_zeros))
-        indices = torch.randperm(d.shape[0])[:required_rows]  # randomly select rows and duplicate without replacement
-        rows_to_add = d[indices]
-        d = torch.cat((d, rows_to_add), dim=0)
+        if metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "PAD ZEROS AT TAIL":
+            padding_zeros = torch.zeros((required_rows, max_len, 3), dtype=eval(dtype))
+            d = torch.cat((d, padding_zeros))
+        elif metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "DUPLICATE RANDOM FRAMES":
+            indices = torch.randperm(d.shape[0])[:required_rows]  # randomly select rows and duplicate without replacement
+            rows_to_add = d[indices]
+            d = torch.cat((d, rows_to_add), dim=0)
+        elif metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "DROP IF INSUFFICIENT FRAMES":
+            return = []
 
     elif len(data_list) > frames_size:
         d = d[:frames_size]
-
-    # Note: Method does not consider situation where frames exceed frame_size(200) and requires preprocessor to drop such data
     return d
 
 
@@ -127,14 +129,16 @@ def tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, f
     strclass = dataidentity[1]
     torch_tensor_radar1 = data_frames_padder_handler(this_data_radar1_frames_list, frame_size, max_len)
     torch_tensor_radar2 = data_frames_padder_handler(this_data_radar2_frames_list, frame_size, max_len)
+
     # Check if List len is acceptable
-    check_size_list_result = check_size_list(metadata.STR_TO_CLASS_LABELS[strclass], torch_tensor_radar1,
+    '''check_size_list_result = check_size_list(metadata.STR_TO_CLASS_LABELS[strclass], torch_tensor_radar1,
                                              torch_tensor_radar2, dataidentity[0])
     if check_size_list_result[0]:
         return (
         check_size_list_result[2], check_size_list_result[1])  # return bad data id, followed by reason as a tuple
-    else:
-        torch_tensor = torch.cat((torch_tensor_radar1, torch_tensor_radar2), dim=1)
+    else:'''
+
+    torch_tensor = torch.cat((torch_tensor_radar1, torch_tensor_radar2), dim=1)
     return torch_tensor
 
 

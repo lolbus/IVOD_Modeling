@@ -136,8 +136,10 @@ def training_preprocess(dataid, strclass, json_list_file, augmentation=False, wh
     # Tensorize the frames list, Pad data tensor height, 2 Methods, pad zeros or interpolate and duplicating neighbouring pixel values and concatenate them
     torch_tensor = dh.tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, metadata.FRAME_SIZE,
                                      metadata.FRAME_LENGTH, dataidentity)
-    if type(torch_tensor) == tuple:  # Failed to tensorize will return a tuple
-        return torch_tensor[0], torch_tensor[1], None, None, None, None
+
+    if torch_tensor.shape[0] != metadata.FRAME_SIZE:  # Failed to tensorize will return a tuple
+        print("returning int instance as this instance is undersized and has to be dropped")
+        return 1
 
     # Data Normalize
     torch_tensor = dh.normalize_tensor(torch_tensor, max_values=metadata.RGB_MAX_VALUES,
