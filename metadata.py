@@ -3,6 +3,18 @@ import torch
 class DatasetMeta(object):
     """metadata class which store all prefix meta values related to the dataset"""
     def __init__(self):
+        # Training configs:
+        self.data_class_distribution = [5000, 10000, 5000,
+                                        0]  # How much samples to draw for training data preprocessing
+        # DROP UNDERSIZED FRAME CANNOT BE USED DURING INFERENCE
+        # "Available: DUPLIECATE RANDOM FRAMES / DROP IF INSUFFICIENT FRAMES / PAD ZEROS AT TAIL"
+        self.INPUT_PADDER_CONFIG = {"Min Frame Handler": "PAD ZEROS AT TAIL"}
+
+        # Inference configs:
+        self.modelDir = "C:/Users/WayneGuangWayTENGSof/Desktop/IVOD_Models/"  # Directory of saved weights checkpoint
+
+
+        # Static variables ( Change only if you have done the homework )
         self.RGB_MAX_VALUES = (5.39238717, 7.44210686, 2.46697083)
         self.RGB_MIN_VALUES = (-5.53902304, -3.51760874, -2.50915695)
         self.RGB_MEAN_VALUES = (131.36865153/255.,  97.51712626/255., 124.85315563/255.)
@@ -31,4 +43,5 @@ class DatasetMeta(object):
          ((0. - self.RGB_MIN_VALUES[1])/(self.RGB_MAX_VALUES[1]-self.RGB_MIN_VALUES[1]) - self.RGB_MEAN_VALUES[1])/self.RGB_STD_VALUES[1],
           ((0. - self.RGB_MIN_VALUES[2])/(self.RGB_MAX_VALUES[2]-self.RGB_MIN_VALUES[2]) - self.RGB_MEAN_VALUES[2])/self.RGB_STD_VALUES[2]
          ]
-        self.INPUT_PADDER_CONFIG = {"Min Frame Handler": "DROP IF INSUFFICIENT FRAMES"} # "Available: DUPLIECATE RANDOM FRAMES / DROP IF INSUFFICIENT FRAMES / PAD ZEROS AT TAIL"
+
+

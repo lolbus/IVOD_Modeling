@@ -4,6 +4,7 @@ from model import MyModel
 from metadata import DatasetMeta
 import datahandler as dh
 import torch
+import torchvision.transforms as transforms
 metadata = DatasetMeta()
 
 def load_inference_model(model_weight_path, device='cpu'):

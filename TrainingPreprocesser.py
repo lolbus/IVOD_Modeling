@@ -12,7 +12,7 @@ import time
 import numpy as np
 
 metadata = DatasetMeta()
-instances_each_class_desired = [5000, 10000, 5000, 0]
+instances_each_class_desired = metadata.data_class_distribution
 
 def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
     '''

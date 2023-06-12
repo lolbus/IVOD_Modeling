@@ -1,8 +1,10 @@
 # Save as model.py
 
 import torch.nn as nn
+import torch
 import torchvision.models as models
 import torch.nn.functional as F
+from metadata import DatasetMeta
 
 # Define the model architecture
 class MyModel(nn.Module):
@@ -78,3 +80,39 @@ def IVODResnet34():
     modelA.forward = new_forward.__get__(modelA, models.ResNet)
     modelA = modelA.to(device)
     return modelA
+
+class modelloader(object):
+    def __init__(self, modelname="IVOD V1"):
+        self.metadata = DatasetMeta()
+        device = torch.device("cpu")
+        models_dir = self.metadata.modelDir
+        if modelname == "IVOD V1":
+            self.FPPredictor = IVODResnet34()
+            self.LBPredictor = IVODResnet34()
+            self.FPPredictor.load_state_dict(
+                torch.load(models_dir + '/FP_Predictor/050623-FP-0992-10SEC-200MAXFRAME.pt', map_location=device))
+            self.LBPredictor.load_state_dict(
+                torch.load(models_dir + '/LB_Predictor/050623-LB-0997-10SEC-200MAXFRAME.pt', map_location=device))
+            self.metadata.FRAME_SIZE = 182
+        elif modelname == "IVOD V3":
+            self.FPPredictor = IVODResnet34()
+            self.LBPredictor = IVODResnet34()
+            self.FPPredictor.load_state_dict(
+                torch.load(models_dir + '/FP_Predictor/120623-FP-1000-FRAMESTEP-180MAXFRAME-V3_model_weight.pt', map_location=device))
+            self.LBPredictor.load_state_dict(
+                torch.load(models_dir + '/LB_Predictor/120623-LB-09995-FRAMESTEP-DUPLICATE-180MF_best_model.pt', map_location=device))
+            self.metadata.FRAME_SIZE = 185
+        self.FPPredictor.eval()
+        self.LBPredictor.eval()
+        self.positive_thresold = 0.999
+
+    def calculate_output(self, input):
+        with torch.no_grad():
+            FP_Score = torch.sigmoid(self.FPPredictor(input))
+            LB_Score = torch.sigmoid(self.LBPredictor(input))
+            FP_Predict = (FP_Score > self.positive_thresold).long().item()
+            LB_Predict = (LB_Score > self.positive_thresold).long().item()
+            passengerNo = FP_Predict + LB_Predict
+            return FP_Predict, LB_Predict, FP_Score, LB_Score, passengerNo
+
+
