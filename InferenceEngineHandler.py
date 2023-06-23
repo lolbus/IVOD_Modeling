@@ -33,6 +33,7 @@ def inference_preprocess(json_list_file, dtype='torch.float32'):
     Output: Torch Tensor data 
     '''
     start = time.time()
+
     # Essential preprocess of BothRadar.txt file
     this_data_radar1_frames_list, this_data_radar2_frames_list = dh.generate_frames_list(json_list_file, metadata.FRAME_LENGTH)
 

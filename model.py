@@ -34,6 +34,7 @@ class MyModel(nn.Module):
         #x = self.dropout(x)
         #x = self.fc3(x)
         return x
+
 def IVODResnet34():
     # Define ResNet model
     import copy
@@ -94,24 +95,67 @@ class modelloader(object):
             self.LBPredictor.load_state_dict(
                 torch.load(models_dir + '/LB_Predictor/050623-LB-0997-10SEC-200MAXFRAME.pt', map_location=device))
             self.metadata.FRAME_SIZE = 182
+            self.FPPredictor.eval()
+            self.LBPredictor.eval()
         elif modelname == "IVOD V3":
             self.FPPredictor = IVODResnet34()
             self.LBPredictor = IVODResnet34()
             self.FPPredictor.load_state_dict(
-                torch.load(models_dir + '/FP_Predictor/120623-FP-1000-FRAMESTEP-180MAXFRAME-V3_model_weight.pt', map_location=device))
+                torch.load(models_dir + '/FP_Predictor/120623-FP-09985-FRAMESTEP-180MAXFRAME-V3_model_weight.pt', map_location=device))
             self.LBPredictor.load_state_dict(
                 torch.load(models_dir + '/LB_Predictor/120623-LB-09995-FRAMESTEP-DUPLICATE-180MF_best_model.pt', map_location=device))
-            self.metadata.FRAME_SIZE = 185
-        self.FPPredictor.eval()
-        self.LBPredictor.eval()
-        self.positive_thresold = 0.999
+            self.metadata.FRAME_SIZE = 180
+            self.FPPredictor.eval()
+            self.LBPredictor.eval()
+        elif modelname == "IVOD V4":
+            self.FPPredictor = IVODResnet34()
+            self.LBPredictor = IVODResnet34()
+            self.FPPredictor.load_state_dict(
+                torch.load(models_dir + '/FP_Predictor/120623-FP-09989-V4-FRAMESTEP-DROPFRAME-FP180_best_model.pt',
+                           map_location=device))
+            self.LBPredictor.load_state_dict(
+                torch.load(models_dir + '/LB_Predictor/130623-LB-1000-A100-FRAMESTEP-DROPFRAMES-V4B-LP180_best_model.pt',
+                           map_location=device))
+            self.metadata.FRAME_SIZE = 180
+            self.FPPredictor.eval()
+            self.LBPredictor.eval()
+        elif modelname == "IVOD V5":
+            self.FPPredictor = IVODResnet34()
+            self.LBPredictor = IVODResnet34()
+            self.FPPredictor.load_state_dict(
+                torch.load(models_dir + '/FP_Predictor/V5-FP-1000-FRAMESIZE-DROPPADDING-180_best_model.pt',
+                           map_location=device))
+            self.LBPredictor.load_state_dict(
+                torch.load(models_dir + '/LB_Predictor/130623-LB-1000-A100-FRAMESTEP-DROPFRAMES-V4B-LP180_best_model.pt',
+                           map_location=device))
+            self.metadata.FRAME_SIZE = 180
+            self.FPPredictor.eval()
+            self.LBPredictor.eval()
+        elif modelname == "IVOD V7":
+            self.FPPredictor = IVODResnet34()
+            self.LBPredictor = IVODResnet34()
+            self.FPPredictor.load_state_dict(
+                torch.load(models_dir + '/FP_Predictor/V7-FP-09942-40k-FRAMESIZE-DROPPADDING-180_best_model.pt',
+                           map_location=device))
+            self.LBPredictor.load_state_dict(
+                torch.load(models_dir + '/LB_Predictor/150623-1000-V7-LB180_best_model.pt',
+                           map_location=device))
+            self.metadata.FRAME_SIZE = 180
+            self.FPPredictor.eval()
+            self.LBPredictor.eval()
+        elif modelname == "IVOD DATA COLLECTOR":
+            self.metadata.FRAME_SIZE = 180
+
+
+        self.fp_positive_thresold = 0.90
+        self.lb_positive_thresold = 0.99
 
     def calculate_output(self, input):
         with torch.no_grad():
             FP_Score = torch.sigmoid(self.FPPredictor(input))
             LB_Score = torch.sigmoid(self.LBPredictor(input))
-            FP_Predict = (FP_Score > self.positive_thresold).long().item()
-            LB_Predict = (LB_Score > self.positive_thresold).long().item()
+            FP_Predict = (FP_Score > self.fp_positive_thresold).long().item()
+            LB_Predict = (LB_Score > self.lb_positive_thresold).long().item()
             passengerNo = FP_Predict + LB_Predict
             return FP_Predict, LB_Predict, FP_Score, LB_Score, passengerNo
 

@@ -10,6 +10,7 @@ import torchvision.transforms as transforms
 from metadata import DatasetMeta
 import time
 import numpy as np
+import pandas as pd
 
 metadata = DatasetMeta()
 instances_each_class_desired = metadata.data_class_distribution
@@ -29,25 +30,46 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
         extra_data = metadata.EXTRA_DATA  # There are extra data instances (more than 10k) for some of the classes, for e.g (D) class has 34 extra instance
         start_id_for_this_class = i * 10000 + extra_data[
             i - 1] if i != 0 else 0  # 0-10033 for (D), 10034-20038 for (D+FP) 20039-30049 for (D+LB) 30050-40049(D+FP+LB)
+        new_method_count = 0
         for count, (root, dirs, files) in enumerate(
                 os.walk(f"{training_json_path_directory}/{c}/")):  # ROOT_DIR/CLASS_FOLDER/
             # check if 'Both Radar.txt' exists in the list of files
-            if count >= instances_to_processed:
+            if count >= instances_to_processed or new_method_count >= instances_to_processed:
                 print(f"Finished processing {count} data instances. Current len {len(training_files)}")
                 break
 
-            if root.split("/")[-1].isdigit():
-                id_identity = int(root.split("/")[-1])
-                data_id = start_id_for_this_class + id_identity
-                if data_id in bad_data_folders:  # Skip folders that are in the blacklist
-                    continue
-            if 'Both Radar.txt' in files:
-                datainstance = [data_id, c, f"{root}/Both Radar.txt", id_identity] # Each instance metadata is its data_id, the true label associated, its origin location and the original id identity when it was raw format
-                # print(f"Add data {datainstance}")
-                training_files.append(datainstance)
-            elif root.split("/")[-1].isdigit() and not 'Both Radar.txt' in files:
-                bad_datainstance = [data_id, c, root]
-                print(f"Bad data detected!!!{bad_datainstance}. count {count} foldername {id_identity}")
+            # Handles the new txt files containing 185 frames of Radar1/2
+            if root == f"{training_json_path_directory}/{c}/":
+                new_method_count = 0
+                for file in files:
+                    if file.split(".")[0].isdigit():
+                        id_identity = int(file.split(".")[0])
+                        data_id = start_id_for_this_class + id_identity
+                        if data_id in bad_data_folders:  # Skip folders that are in the blacklist
+                            continue
+                        datainstance = [data_id, c, f"{root}/{file}", id_identity]
+                        training_files.append(datainstance)
+                        new_method_count += 1
+                        if new_method_count > instances_to_processed:
+                            break
+
+            else:
+                # Handles the old txt files containing list of JSON
+                if root.split("/")[-1].isdigit():
+                    id_identity = int(root.split("/")[-1])
+                    data_id = start_id_for_this_class + id_identity
+                    if data_id in bad_data_folders:  # Skip folders that are in the blacklist
+                        continue
+                if 'Both Radar.txt' in files:
+                    datainstance = [data_id, c, f"{root}/Both Radar.txt", id_identity] # Each instance metadata is its data_id, the true label associated, its origin location and the original id identity when it was raw format
+                    # print(f"Add data {datainstance}")
+                    training_files.append(datainstance)
+                elif root.split("/")[-1].isdigit() and not 'Both Radar.txt' in files:
+                    bad_datainstance = [data_id, c, root]
+                    print(f"Bad data detected!!!{bad_datainstance}. count {count} foldername {id_identity}")
+
+
+
             
         print(f"completed loading for class {c} {metadata.STR_TO_ONEHOT_LABELS[c]}. Total instances {len(training_files)}")
 
@@ -112,8 +134,8 @@ def load_bad_data(dir={
     return np.array(loaded_list), time_take
 
 
-def training_preprocess(dataid, strclass, json_list_file, augmentation=False, whitenoise_scale=0.01,
-                        dtype='torch.float32'):
+def training_preprocess(dataid, strclass, txt_file, augmentation=False, whitenoise_scale=0.01,
+                        dtype='torch.float32', BothRadarTxt=True):
     '''
     Must be replicable by inference engine preprocessing.
     Perform data preprocess for training data as input for ML Model.
@@ -128,10 +150,16 @@ def training_preprocess(dataid, strclass, json_list_file, augmentation=False, wh
     '''
     start = time.time()
     dataidentity = (dataid, strclass)
+    augmentation_factor = metadata.augmentation_rate[metadata.STR_TO_CLASS_LABELS[strclass]]
 
     # Essential preprocess of BothRadar.txt file
-    this_data_radar1_frames_list, this_data_radar2_frames_list = dh.generate_frames_list(json_list_file,
-                                                                                         metadata.FRAME_LENGTH)
+    if BothRadarTxt:
+        this_data_radar1_frames_list, this_data_radar2_frames_list = dh.generate_frames_list(txt_file,
+                                                                                             metadata.FRAME_LENGTH)
+    else:
+        print(f"new format processing {txt_file}")
+        this_data_radar1_frames_list, this_data_radar2_frames_list = dh.generate_frames_list_from_txt(txt_file,
+                                                                                             metadata.FRAME_LENGTH)
 
     # Tensorize the frames list, Pad data tensor height, 2 Methods, pad zeros or interpolate and duplicating neighbouring pixel values and concatenate them
     torch_tensor = dh.tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, metadata.FRAME_SIZE,
@@ -156,9 +184,14 @@ def training_preprocess(dataid, strclass, json_list_file, augmentation=False, wh
     if augmentation:
         im_bef_aug = transforms.ToPILImage()(torch_tensor[0])
         # Return result with augmentation noise (Unlike inference which skip this steps)
-        torch_tensor = dh.augmentation_handler(torch_tensor, whitenoise_scale=whitenoise_scale)
+        replicate_data = []
+        for replicate in range(augmentation_factor):
+            replicate_data.append(dh.augmentation_handler(torch_tensor, whitenoise_scale=whitenoise_scale))
+        replicate_data_tensor = torch.tensor(replicate_data)
+        torch_tensor = torch.cat( (torch_tensor, replicate_data_tensor), dim=0)
 
-    im = transforms.ToPILImage()(torch_tensor[0])
+
+    im = transforms.ToPILImage()(torch_tensor[-1])
 
     # Save the true label
     strlabel = strclass
@@ -168,3 +201,66 @@ def training_preprocess(dataid, strclass, json_list_file, augmentation=False, wh
 
     return torch_tensor, onehotlabel, im, im_bef_stand, im_bef_aug, time_take
 
+def training_set_preprocess(dataset:list, augmentation=False):
+    """
+    Preprocess the list of dataset
+    Input lists of data ID and locations
+    Output dataframe containing structured info
+    """
+    # Create new data df
+    df = pd.DataFrame(columns=["Data ID", "(D)", "(FP)", "(LB)", "strLabel", "classLabel"])
+    train_tensor = torch.empty(size=(0, 3, metadata.FRAME_SIZE, metadata.FRAME_LENGTH * 2), dtype=torch.float32)
+    train_label_tensor = torch.empty(size=(0, 4), dtype=torch.float32)
+    bad_data_discovered = []
+    for i, data in enumerate(dataset):
+        data_id = data[0] # The id given in this processed dataset
+        strlabel = data[1] # strlabel
+        data_file_origin = data[2] # The origin of the data
+        original_data_identity = data[3] # original data identity when it was raw
+
+        if data_file_origin.split("/")[-1] == "Both Radar.txt":
+            # preprocess data
+            x_final, y_onehot_str, final_heatmap, before_stand_heatmap, before_aug_heatmap, preprocess_time_take = training_preprocess(dataid=data_id,
+                                                                                                                                       strclass=strlabel,
+                                                                                                                                       txt_file=data_file_origin,
+                                                                                                                                       augmentation = False)
+        else:
+            x_final, y_onehot_str, final_heatmap, before_stand_heatmap, before_aug_heatmap, preprocess_time_take = training_preprocess(
+                dataid=data_id,
+                strclass=strlabel,
+                txt_file=data_file_origin,
+                augmentation=False,
+                BothRadarTxt= False)
+
+
+        if type(x_final) == int:
+            s = (str(x_final), y_onehot_str)
+            print("Bad data discovered! ", s)
+            bad_data_discovered.append(s)
+            continue
+
+
+        # save heat maps for visual inspection
+        dh.save_image(before_stand_heatmap, dir=f"./before_stand_heatmap/{strlabel}_{original_data_identity}_{data_id}.png")
+        dh.save_image(final_heatmap, dir=f"./final_heatmap/{strlabel}_{original_data_identity}_{data_id}.png")
+        if augmentation:
+            dh.save_image(before_aug_heatmap, dir=f"./before_aug_heatmap/{strlabel}_{original_data_identity}_{data_id}.png")
+
+
+        # concat labels and other essential structured information into df
+        y_onehot = eval(y_onehot_str)
+        file_data_dict = {"Data ID": data_id, "(D)":y_onehot[0], "(FP)":y_onehot[1], "(LB)":y_onehot[2], "strLabel": strlabel, "classLabel": metadata.STR_TO_CLASS_LABELS[strlabel]}
+
+        # save the y label tensor and its respective onehot
+        y_final = torch.tensor(y_onehot + [data_id], dtype = torch.int)
+
+        # Append the dictionary as a row in the DataFrame
+        df = pd.concat([df, pd.DataFrame([file_data_dict])], ignore_index=True)
+
+        # Append X tensor by concatenate method
+        train_tensor = torch.cat((train_tensor, x_final), dim=0)
+        train_label_tensor = torch.cat((train_label_tensor, y_final.unsqueeze(0)), dim=0)
+        if i % 1000 == 0:
+            print(f"Completed {i}/{len(dataset)}")
+    print("Bad data detected ", bad_data_discovered)
+    return df, train_tensor, train_label_tensor

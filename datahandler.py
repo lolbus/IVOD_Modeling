@@ -45,6 +45,12 @@ def generate_frames_list(json_list_file, max_len=149):
             this_frame_points_list = []
             try:
                 for points in d:
+                    '''if points['x'] < metadata.MIN_X or points['x'] > metadata.MAX_X:
+                        continue
+                    if points['y'] < metadata.MIN_Y or points['y'] > metadata.MAX_Y:
+                        continue
+                    if points['z'] < metadata.MIN_Z or points['z'] > metadata.MAX_Z:
+                        continue'''
                     point_list = [points['x'], points['y'], points['z']]
                     this_frame_points_list.append(point_list)
                 # Pad width with zeros
@@ -52,7 +58,7 @@ def generate_frames_list(json_list_file, max_len=149):
             except Exception as e:
                 print("Check data format:", i, e)
                 print(d)
-            if len(this_frame_points_list) == max_len: # Pad successfully!
+            if len(this_frame_points_list) == max_len:  # Pad successfully!
                 this_data_radar1_frames_list.append(this_frame_points_list) if json_dict[
                                                                                    'name'] == 'radar1' else this_data_radar2_frames_list.append(
                     this_frame_points_list)
@@ -60,6 +66,37 @@ def generate_frames_list(json_list_file, max_len=149):
                 print(
                     f"Skipping json object of line {i}. Unusual circumstance. json object size {len(this_frame_points_list)} values: {this_frame_points_list}")
                 continue
+    return this_data_radar1_frames_list, this_data_radar2_frames_list
+
+
+def generate_frames_list_from_txt(txt_list_file, max_len=149):
+    '''
+    Input txt file of new data format [Radar1_Frames_List, Radar2_Frames_List] where RadarX_Frames_List = [RadarX_Frame1, RadarX_Frame2... RadarX_Frame180]
+    Output processed radar frames as lists (many list of xyz points within 1 frame) in list (list of frames) for radar1 and radar2
+    '''
+    with open(txt_list_file, 'r') as f:
+        this_data_radar1_frames_list = []
+        this_data_radar2_frames_list = []
+        for i, line in enumerate(f):
+            data = eval(line)
+            this_data_radar1_frames_list = data[0][-metadata.FRAME_SIZE:]
+            this_data_radar2_frames_list = data[1][-metadata.FRAME_SIZE:]
+
+            this_data_radar1_frames_list = [(0.01 * torch.tensor(frame)[:, :-1]).tolist() for frame in
+                                            this_data_radar1_frames_list if len(frame) > 0]
+            this_data_radar2_frames_list = [(0.01 * torch.tensor(frame)[:, :-1]).tolist() for frame in
+                                            this_data_radar2_frames_list if len(frame) > 0]
+
+
+            try:
+
+                this_data_radar1_frames_list = [data_framesize_padder_handler(this_frame_points_list, max_len) for
+                                                this_frame_points_list in this_data_radar1_frames_list]
+                this_data_radar2_frames_list = [data_framesize_padder_handler(this_frame_points_list, max_len) for
+                                                this_frame_points_list in this_data_radar2_frames_list]
+            except Exception as e:
+                print("Check data format:", txt_list_file, e)
+
     return this_data_radar1_frames_list, this_data_radar2_frames_list
 
 
@@ -96,7 +133,8 @@ def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="tor
             padding_zeros = torch.zeros((required_rows, max_len, 3), dtype=eval(dtype))
             d = torch.cat((d, padding_zeros))
         elif metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "DUPLICATE RANDOM FRAMES":
-            indices = torch.randperm(d.shape[0])[:required_rows]  # randomly select rows and duplicate without replacement
+            indices = torch.randperm(d.shape[0])[
+                      :required_rows]  # randomly select rows and duplicate without replacement
             rows_to_add = d[indices]
             d = torch.cat((d, rows_to_add), dim=0)
         elif metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "DROP IF INSUFFICIENT FRAMES":
@@ -111,7 +149,7 @@ def check_size_list(class_label: int, torch_tensor_radar1, torch_tensor_radar2, 
     # Check if List len is acceptable, if unaccepted return reason, and the folder name
     if torch_tensor_radar1.shape[0] != metadata.FRAME_SIZE or torch_tensor_radar2.shape[0] != metadata.FRAME_SIZE:
         bad_data_discovered = dataid - (
-                    class_label * 10000 + (0 if class_label == 0 else metadata.EXTRA_DATA[class_label - 1]))
+                class_label * 10000 + (0 if class_label == 0 else metadata.EXTRA_DATA[class_label - 1]))
         reason = f"Class label {class_label}. Frame length do not match! Len of Radar1 points: {torch_tensor_radar1.shape[0]} Len of Radar2 points: {torch_tensor_radar2.shape[0]}. Required {metadata.FRAME_SIZE} "
         return True, reason, bad_data_discovered
     else:
@@ -127,8 +165,10 @@ def tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, f
     '''
     dataid = dataidentity[0]
     strclass = dataidentity[1]
-    torch_tensor_radar1, radar1_pad_success = data_frames_padder_handler(this_data_radar1_frames_list, frame_size, max_len)
-    torch_tensor_radar2, radar2_pad_success = data_frames_padder_handler(this_data_radar2_frames_list, frame_size, max_len)
+    torch_tensor_radar1, radar1_pad_success = data_frames_padder_handler(this_data_radar1_frames_list, frame_size,
+                                                                         max_len)
+    torch_tensor_radar2, radar2_pad_success = data_frames_padder_handler(this_data_radar2_frames_list, frame_size,
+                                                                         max_len)
 
     # Check if List len is acceptable
     '''check_size_list_result = check_size_list(metadata.STR_TO_CLASS_LABELS[strclass], torch_tensor_radar1,
