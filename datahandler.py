@@ -87,7 +87,6 @@ def generate_frames_list_from_txt(txt_list_file, max_len=149):
             this_data_radar2_frames_list = [(0.01 * torch.tensor(frame)[:, :-1]).tolist() for frame in
                                             this_data_radar2_frames_list if len(frame) > 0]
 
-
             try:
 
                 this_data_radar1_frames_list = [data_framesize_padder_handler(this_frame_points_list, max_len) for

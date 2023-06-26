@@ -144,11 +144,17 @@ class modelloader(object):
             self.FPPredictor.eval()
             self.LBPredictor.eval()
         elif modelname == "IVOD DATA COLLECTOR":
+            self.ECPredictor = IVODResnet34()
+            self.ECPredictor.load_state_dict(
+                torch.load(models_dir + '/EC_Predictor/260623-V9-EC180_best_model.pt',
+                           map_location=device))
+            self.ECPredictor.eval()
             self.metadata.FRAME_SIZE = 180
 
 
         self.fp_positive_thresold = 0.90
         self.lb_positive_thresold = 0.99
+        self.ec_positive_thresold = 0.5
 
     def calculate_output(self, input):
         with torch.no_grad():
@@ -158,5 +164,12 @@ class modelloader(object):
             LB_Predict = (LB_Score > self.lb_positive_thresold).long().item()
             passengerNo = FP_Predict + LB_Predict
             return FP_Predict, LB_Predict, FP_Score, LB_Score, passengerNo
+
+    def calculate_ec_output(self, input):
+        with torch.no_grad():
+            EC_Score = torch.sigmoid(self.ECPredictor(input))
+            EC_Predict = (EC_Score > self.ec_positive_thresold).long().item()
+            passengerNo = 0 if EC_Predict == 1 else -1
+            return EC_Predict, EC_Score, passengerNo
 
 

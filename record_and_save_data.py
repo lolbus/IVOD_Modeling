@@ -5,14 +5,21 @@ import time
 from threading import Thread
 from metadata import DatasetMeta
 import os
-
+import InferenceEngineHandler as ieh
+from pynput import keyboard
 
 class status_handler(object):
     def __init__(self):
         self.updated = False
+        self.start = False
 
 
 statushandler = status_handler()
+
+def on_press(key):
+    if key == keyboard.Key.space:
+        statushandler.start = not statushandler.start
+        print(f'Space bar pressed. Started:{statushandler.start}')
 
 context = zmq.Context()
 # publish output target
@@ -76,9 +83,11 @@ print("Completed Model Loading")
 
 
 def collect_and_save_data_static_loop():
-    global unpacked_radar_stream_1, unpacked_radar_stream_2
+    global unpacked_radar_stream_1, unpacked_radar_stream_2, unpacked_radar_stream_1_conv, unpacked_radar_stream_2_conv
     unpacked_radar_stream_1 = []
     unpacked_radar_stream_2 = []
+    unpacked_radar_stream_1_conv = []
+    unpacked_radar_stream_2_conv = []
     while True:
         start = time.time()
         if len(unpacked_radar_stream_1) >= model.metadata.FRAME_SIZE + 5:
@@ -87,6 +96,13 @@ def collect_and_save_data_static_loop():
         if len(unpacked_radar_stream_2) >= model.metadata.FRAME_SIZE + 5:
             unpacked_radar_stream_2 = unpacked_radar_stream_2[
                                       len(unpacked_radar_stream_2) - model.metadata.FRAME_SIZE - 5:]
+        if len(unpacked_radar_stream_1_conv) >= model.metadata.FRAME_SIZE + 5:
+            unpacked_radar_stream_1_conv = unpacked_radar_stream_1_conv[
+                                      len(unpacked_radar_stream_1_conv) - model.metadata.FRAME_SIZE - 5:]
+        if len(unpacked_radar_stream_2_conv) >= model.metadata.FRAME_SIZE + 5:
+            unpacked_radar_stream_2_conv = unpacked_radar_stream_2_conv[
+                                      len(unpacked_radar_stream_2_conv) - model.metadata.FRAME_SIZE - 5:]
+
         # ml_data_array1 = []
         # ml_data_array2 = []
         # frame_len = 0
@@ -104,20 +120,27 @@ def collect_and_save_data_static_loop():
             packet = packet["data"]
             this_frame_pts_1 = []
             this_frame_pts_2 = []
+            this_frame_pts_1_conventional = []
+            this_frame_pts_2_conventional = []
             for p in packet:
                 if p.get("x") is not None:
                     tmp = [int(round(p.get("x") * 100)), int(round(p.get("y") * 100)), int(round(p.get("z") * 100)),
                            int(round(p.get("doppler") * 1000))]
+                    tmp_conventional = [int(round(p.get("x") * 100)) * 0.01, int(round(p.get("y") * 100)) * 0.01, int(round(p.get("z") * 100)) * 0.01]
                     if name == "radar1":
                         this_frame_pts_1.append(tmp)
+                        this_frame_pts_1_conventional.append(tmp_conventional)
                     elif name == "radar2":
                         this_frame_pts_2.append(tmp)
-            if name == "radar1":
+                        this_frame_pts_2_conventional.append(tmp_conventional)
+            if name == "radar1" and len(this_frame_pts_1) > 0:
                 # ml_data_array1.append(this_frame_pts_1)
                 unpacked_radar_stream_1.append(this_frame_pts_1)
-            elif name == "radar2":
+                unpacked_radar_stream_1_conv.append(this_frame_pts_1_conventional)
+            elif name == "radar2" and len(this_frame_pts_2) > 0:
                 # ml_data_array2.append(this_frame_pts_2)
                 unpacked_radar_stream_2.append(this_frame_pts_2)
+                unpacked_radar_stream_2_conv.append(this_frame_pts_2_conventional)
             statushandler.updated = True
 
 
@@ -127,11 +150,11 @@ def collect_and_save_data_static_loop():
 x = eval(x)'''
 
 
-def unpack_data(r1, r2):
+'''def unpack_data(r1, r2):
     unpacked_r1 = [frame for s in r1 for frame in s]
     unpacked_r2 = [frame for s in r2 for frame in s]
     return unpacked_r1, unpacked_r2
-
+'''
 
 
 metadata = DatasetMeta()
@@ -160,18 +183,35 @@ def inference_and_save():
     run_time = 128800
     for i in range(run_time):
         if statushandler.updated and len(unpacked_radar_stream_1) >= model.metadata.FRAME_SIZE:
-            # Inference Preprocess
-            print("Saving data of length:", len(unpacked_radar_stream_1), len(unpacked_radar_stream_2))
-            d = [unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE],
-                 unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE]]
+            if not statushandler.start:
+                # Inference Preprocess
+                input, im, pprocess_time_take = ieh.live_inference_preprocess(
+                    unpacked_radar_stream_1_conv[0:model.metadata.FRAME_SIZE],
+                    unpacked_radar_stream_2_conv[0:model.metadata.FRAME_SIZE])
 
-            file_count = str(len(os.listdir(directory)))
-            filename = metadata.SAVE_DATA_DIR + "/" + file_count + ".txt"
-            write(data=d, to=filename)
-            statushandler.updated = False
+                # Calculations
+                EC_Predict, EC_Score, passengerNo = model.calculate_ec_output(input)
+                # Print predict result
+                print(f"The Car is Empty: {EC_Predict}, Score {EC_Score}  PassengerNo: {passengerNo}. Press space bar to start..")
+            else:
+                # Saving
+                print("Saving data of length:", len(unpacked_radar_stream_1), len(unpacked_radar_stream_2))
+                d = [unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE],
+                     unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE]]
+
+                file_count = str(len(os.listdir(directory)))
+                filename = metadata.SAVE_DATA_DIR + "/" + file_count + ".txt"
+                write(data=d, to=filename)
+                statushandler.updated = False
         time.sleep(1)
     end_loop = time.time() - start_loop
     print(f"Completed 100 predicts in {end_loop}")
+
+
+# Start the Keyboard listener thread
+listener = keyboard.Listener(on_press=on_press)
+listener_thread = Thread(target=listener.start)
+listener_thread.start()
 
 
 update_data_static = Thread(target=collect_and_save_data_static_loop)
