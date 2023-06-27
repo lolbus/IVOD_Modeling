@@ -1,0 +1,20 @@
+{
+  "zeromq": {
+    "publisher": {
+      "topic": "ivod_demo_dbscan",
+      "url": "tcp://192.168.70.120:11332"
+    },
+    "subscriber": {
+      "topic": "radar_data",
+      "url": "tcp://192.168.70.120:11002"
+    }
+  },
+  "pointLimit": {
+    "lowR": 0,
+    "upR": 3.6,
+    "lowA": -2,
+    "upA": 2,
+    "lowE": -0.8,
+    "upE": 0.2
+  }
+}

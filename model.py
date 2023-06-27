@@ -146,9 +146,14 @@ class modelloader(object):
         elif modelname == "IVOD DATA COLLECTOR":
             self.ECPredictor = IVODResnet34()
             self.ECPredictor.load_state_dict(
-                torch.load(models_dir + '/EC_Predictor/260623-V9-EC180_best_model.pt',
+                torch.load(models_dir + '/EC_Predictor/260623-V9E-EC180_best_model.pt',
+                           map_location=device))
+            self.TestPredictor = IVODResnet34()
+            self.TestPredictor.load_state_dict(
+                torch.load(models_dir + '/Test_Predictor/270623-D+FP+LB_Predictor180_best_model.pt',
                            map_location=device))
             self.ECPredictor.eval()
+            self.TestPredictor.eval()
             self.metadata.FRAME_SIZE = 180
 
 
@@ -171,5 +176,11 @@ class modelloader(object):
             EC_Predict = (EC_Score > self.ec_positive_thresold).long().item()
             passengerNo = 0 if EC_Predict == 1 else -1
             return EC_Predict, EC_Score, passengerNo
+    def calculate_test_output(self, input):
+        with torch.no_grad():
+            Score = torch.sigmoid(self.TestPredictor(input))
+            Predict = (EC_Score > 0.5).long().item()
+            passengerNo = 3 if Predict == 1 else -1
+            return Predict, Score, passengerNo
 
 

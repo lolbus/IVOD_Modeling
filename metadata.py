@@ -8,6 +8,7 @@ class DatasetMeta(object):
         self.HOME_DIR = "C:/Users/WayneGuangWayTENGSof/Desktop/22June_DataCollection/"
         # self.SAVE_DATA_DIR = self.HOME_DIR + "PassengerNo_3 (D+FP+LB)(C)"
         self.SAVE_DATA_DIR = self.HOME_DIR + "PassengerNo_0 (Empty)2"
+        self.SAVE_VID_DATA_DIR = self.HOME_DIR + "(VID)PassengerNo_0 (Empty)"
 
 
         # Training Preprocess configs:

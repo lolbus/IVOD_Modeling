@@ -1,0 +1,210 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj",
+        "projectName": "CommonUtilities",
+        "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj",
+        "packagesPath": "C:\\Users\\YinHonNicholasWONGIn\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\YinHonNicholasWONGIn\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net5.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net5.0": {
+            "targetAlias": "net5.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "dependencies": {
+            "Microsoft.AspNet.SignalR.Client": {
+              "target": "Package",
+              "version": "[2.4.3, )"
+            },
+            "Microsoft.AspNet.WebApi.Client": {
+              "target": "Package",
+              "version": "[5.2.9, )"
+            },
+            "Microsoft.AspNetCore.WebUtilities": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[6.26.1, )"
+            },
+            "Microsoft.Net.Http.Headers": {
+              "target": "Package",
+              "version": "[2.2.8, )"
+            },
+            "NetMQ": {
+              "target": "Package",
+              "version": "[4.0.1.9, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.1, )"
+            },
+            "QRCoder": {
+              "target": "Package",
+              "version": "[1.4.3, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.4.0, )"
+            },
+            "Serilog": {
+              "target": "Package",
+              "version": "[2.11.0, )"
+            },
+            "Serilog.Sinks.Debug": {
+              "target": "Package",
+              "version": "[2.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "SuperSocket.ClientEngine.Core": {
+              "target": "Package",
+              "version": "[0.10.0, )"
+            },
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "System.IO.Ports": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "System.Management": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "WebSocket4Net": {
+              "target": "Package",
+              "version": "[0.15.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN.csproj",
+        "projectName": "IVOD_SplitDBSCAN",
+        "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN.csproj",
+        "packagesPath": "C:\\Users\\YinHonNicholasWONGIn\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\YinHonNicholasWONGIn\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {
+              "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj": {
+                "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "Dbscan": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
+            "NetMQ": {
+              "target": "Package",
+              "version": "[4.0.1.12, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "Serilog": {
+              "target": "Package",
+              "version": "[2.12.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

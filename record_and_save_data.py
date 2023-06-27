@@ -126,7 +126,8 @@ def collect_and_save_data_static_loop():
                 if p.get("x") is not None:
                     tmp = [int(round(p.get("x") * 100)), int(round(p.get("y") * 100)), int(round(p.get("z") * 100)),
                            int(round(p.get("doppler") * 1000))]
-                    tmp_conventional = [int(round(p.get("x") * 100)) * 0.01, int(round(p.get("y") * 100)) * 0.01, int(round(p.get("z") * 100)) * 0.01]
+                    # tmp_conventional = [int(round(p.get("x") * 100)) * 0.01, int(round(p.get("y") * 100)) * 0.01, int(round(p.get("z") * 100)) * 0.01]
+                    tmp_conventional = [p.get("x"), p.get("y"), p.get("z")]
                     if name == "radar1":
                         this_frame_pts_1.append(tmp)
                         this_frame_pts_1_conventional.append(tmp_conventional)
@@ -170,7 +171,7 @@ def write(data: list, to: str):
 def inference_and_save():
     # initialize by collecting 10s worth of data first
     while len(unpacked_radar_stream_1) < 1 or len(unpacked_radar_stream_2) < 1 or not statushandler.updated:
-        print("Updated status", statushandler.updated)
+        print("New data update received? ", statushandler.updated)
         time.sleep(0.5)
     else:
         print("Okay to infer sec of data available for r1 and r2", len(unpacked_radar_stream_1),
@@ -191,8 +192,14 @@ def inference_and_save():
 
                 # Calculations
                 EC_Predict, EC_Score, passengerNo = model.calculate_ec_output(input)
+                Test_Predict, Test_Score, Test_passengerNo = model.calculate_test_output(input)
+
+
                 # Print predict result
                 print(f"The Car is Empty: {EC_Predict}, Score {EC_Score}  PassengerNo: {passengerNo}. Press space bar to start..")
+
+                print(
+                    f"Test Model: {Test_Predict}, +ve Score {Test_Score}  PassengerNo: {Test_passengerNo}. Press space bar to start..")
             else:
                 # Saving
                 print("Saving data of length:", len(unpacked_radar_stream_1), len(unpacked_radar_stream_2))

@@ -40,7 +40,12 @@ def generate_frames_list(json_list_file, max_len=149):
         this_data_radar1_frames_list = []
         this_data_radar2_frames_list = []
         for i, line in enumerate(f):
-            json_dict = json.loads(line)
+            try:
+                json_dict = json.loads(line)
+            except Exception as e:
+                print(e)
+                print("ERROR check data format! Cannot convert line to JSON", i)
+                print("the line trying to read", line)
             d = json_dict['data']
             this_frame_points_list = []
             try:
