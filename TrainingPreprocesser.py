@@ -157,7 +157,7 @@ def training_preprocess(dataid, strclass, txt_file, augmentation=False, whitenoi
         this_data_radar1_frames_list, this_data_radar2_frames_list = dh.generate_frames_list(txt_file,
                                                                                              metadata.FRAME_LENGTH)
     else:
-        print(f"new format processing {txt_file}")
+        # print(f"new format processing {txt_file}")
         this_data_radar1_frames_list, this_data_radar2_frames_list = dh.generate_frames_list_from_txt(txt_file,
                                                                                              metadata.FRAME_LENGTH)
 
