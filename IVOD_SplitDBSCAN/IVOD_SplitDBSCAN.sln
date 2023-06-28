@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IVOD_SplitDBSCAN", "IVOD_Sp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IVOD_SplitDBSCAN", "IVOD_SplitDBSCAN", "{72AF17FE-8B0F-455C-9687-BAC62757ED1B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities", "..\gwf-tender-demo\GWFTenderDemo\CommonUtilities\CommonUtilities.csproj", "{4EE41D01-B42C-484B-840A-A75F28A3B80B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonUtilities", "CommonUtilities\CommonUtilities.csproj", "{33DE7A8E-6060-450D-8DA4-69689B90DD78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +19,10 @@ Global
 		{3E4BAB17-790A-49FA-947B-74DBF55EE984}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E4BAB17-790A-49FA-947B-74DBF55EE984}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E4BAB17-790A-49FA-947B-74DBF55EE984}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4EE41D01-B42C-484B-840A-A75F28A3B80B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4EE41D01-B42C-484B-840A-A75F28A3B80B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4EE41D01-B42C-484B-840A-A75F28A3B80B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4EE41D01-B42C-484B-840A-A75F28A3B80B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33DE7A8E-6060-450D-8DA4-69689B90DD78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33DE7A8E-6060-450D-8DA4-69689B90DD78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33DE7A8E-6060-450D-8DA4-69689B90DD78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33DE7A8E-6060-450D-8DA4-69689B90DD78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

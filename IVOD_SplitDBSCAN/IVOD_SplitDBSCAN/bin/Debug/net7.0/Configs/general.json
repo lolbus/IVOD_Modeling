@@ -16,5 +16,11 @@
     "upA": 2,
     "lowE": -0.8,
     "upE": 0.2
+  },
+  "dbscanParams": {
+    "rawEps": 0.4,
+    "rawMin": 6,
+    "centEps": 0.3,
+    "centMin":  4
   }
 }

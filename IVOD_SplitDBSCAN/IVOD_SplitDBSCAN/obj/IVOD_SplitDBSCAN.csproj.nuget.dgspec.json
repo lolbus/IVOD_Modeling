@@ -4,14 +4,14 @@
     "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN\\IVOD_SplitDBSCAN.csproj": {}
   },
   "projects": {
-    "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj": {
+    "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj",
+        "projectUniqueName": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj",
         "projectName": "CommonUtilities",
-        "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj",
+        "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj",
         "packagesPath": "C:\\Users\\YinHonNicholasWONGIn\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\obj\\",
+        "outputPath": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\YinHonNicholasWONGIn\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -153,8 +153,8 @@
           "net7.0": {
             "targetAlias": "net7.0",
             "projectReferences": {
-              "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj": {
-                "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj"
+              "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj": {
+                "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj"
               }
             }
           }

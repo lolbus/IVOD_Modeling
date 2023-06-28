@@ -7321,8 +7321,8 @@
     },
     "CommonUtilities/1.0.0": {
       "type": "project",
-      "path": "../../gwf-tender-demo/GWFTenderDemo/CommonUtilities/CommonUtilities.csproj",
-      "msbuildProject": "../../gwf-tender-demo/GWFTenderDemo/CommonUtilities/CommonUtilities.csproj"
+      "path": "../CommonUtilities/CommonUtilities.csproj",
+      "msbuildProject": "../CommonUtilities/CommonUtilities.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -7361,8 +7361,8 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "projectReferences": {
-            "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj": {
-              "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\gwf-tender-demo\\GWFTenderDemo\\CommonUtilities\\CommonUtilities.csproj"
+            "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj": {
+              "projectPath": "C:\\Users\\YinHonNicholasWONGIn\\IVOD_SplitDBSCAN\\CommonUtilities\\CommonUtilities.csproj"
             }
           }
         }

@@ -5,6 +5,15 @@ import torch
 import torchvision.models as models
 import torch.nn.functional as F
 from metadata import DatasetMeta
+import numpy as np
+import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
+import MediaPipeCallbacks as mpc
+BaseOptions = mp.tasks.BaseOptions
+ObjectDetector = mp.tasks.vision.ObjectDetector
+ObjectDetectorOptions = mp.tasks.vision.ObjectDetectorOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
 
 # Define the model architecture
 class MyModel(nn.Module):
@@ -155,11 +164,33 @@ class modelloader(object):
             self.ECPredictor.eval()
             self.TestPredictor.eval()
             self.metadata.FRAME_SIZE = 180
+        elif modelname == "CCTV_MP_PERSON_PREDICTOR":
+            options = vision.ObjectDetectorOptions(
+                base_options=BaseOptions(model_asset_path=models_dir + '/CCTVPredictor/efficientdet.tflite'),
+                running_mode=VisionRunningMode.LIVE_STREAM,
+                max_results=3,
+                result_callback=mpc.persondetector_print_result, score_threshold=0.5)
+            self.detector = vision.ObjectDetector.create_from_options(options)
+        elif modelname == "ZERO_PAX_PREDICTOR":
+            self.ECPredictor = IVODResnet34()
+            self.ECPredictor.load_state_dict(
+                torch.load(models_dir + '/EC_Predictor/260623-V9E-EC180_best_model.pt',
+                           map_location=device))
+            self.ECPredictor.eval()
+            self.metadata.FRAME_SIZE = 180
+
 
 
         self.fp_positive_thresold = 0.90
         self.lb_positive_thresold = 0.99
         self.ec_positive_thresold = 0.5
+
+
+
+    def persondetector_evaluate_frame(self, input, counter):
+        self.detector.detect_async(input, counter)
+        result = mpc.persondetector_predictionHandler.predictions
+        return result
 
     def calculate_output(self, input):
         with torch.no_grad():
@@ -176,10 +207,11 @@ class modelloader(object):
             EC_Predict = (EC_Score > self.ec_positive_thresold).long().item()
             passengerNo = 0 if EC_Predict == 1 else -1
             return EC_Predict, EC_Score, passengerNo
+
     def calculate_test_output(self, input):
         with torch.no_grad():
             Score = torch.sigmoid(self.TestPredictor(input))
-            Predict = (EC_Score > 0.5).long().item()
+            Predict = (Score > 0.5).long().item()
             passengerNo = 3 if Predict == 1 else -1
             return Predict, Score, passengerNo
 

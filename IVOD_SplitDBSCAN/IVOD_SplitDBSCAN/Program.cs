@@ -74,6 +74,7 @@ namespace IVOD_SplitDBSCAN
         private static JObject zPub = Utilities.GetConfigurationWithPath("zeromq", "publisher", new JObject(), Constants.GeneralConfig);
         private static JObject zSub = Utilities.GetConfigurationWithPath("zeromq", "subscriber", new JObject(), Constants.GeneralConfig);
         private static Limits Limit = Utilities.GetConfigurationWithPath("pointLimit", "", new JObject(), Constants.GeneralConfig).ToObject<Limits>();
+        private static JObject DBSCANparams = Utilities.GetConfigurationWithPath("dbscanParams", "", new JObject(), Constants.GeneralConfig);
         private static EventHandler zmqReceiveHandler;
         private static CancellationTokenSource _RawCts;
         private static CancellationTokenSource _CentCts;
@@ -130,8 +131,8 @@ namespace IVOD_SplitDBSCAN
         {
             var clusters = Dbscan.Dbscan.CalculateClusters<PointData>(
                 data,
-                epsilon: 0.4,
-                minimumPointsPerCluster: 6);
+                epsilon: float.Parse(DBSCANparams["rawEps"].ToString()),
+                minimumPointsPerCluster: int.Parse(DBSCANparams["rawMin"].ToString()));
             double avgX = 0;
             double avgY = 0;
             int index = 0;
@@ -238,8 +239,8 @@ namespace IVOD_SplitDBSCAN
                     Centroids.Clear();
                     var clusters = Dbscan.Dbscan.CalculateClusters<PointData>(
                     CentVec,
-                    epsilon: 0.4,
-                    minimumPointsPerCluster: 8);
+                    epsilon: float.Parse(DBSCANparams["centEps"].ToString()),
+                    minimumPointsPerCluster: int.Parse(DBSCANparams["centMin"].ToString()));
                     List<PointData> PplLocale = new List<PointData>() { };
                     JArray jVectArr = new JArray();
                     for (int i = 0; i < clusters.Clusters.Count; i++)

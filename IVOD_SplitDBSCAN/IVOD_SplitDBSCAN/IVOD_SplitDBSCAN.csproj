@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\gwf-tender-demo\GWFTenderDemo\CommonUtilities\CommonUtilities.csproj" />
+    <ProjectReference Include="..\CommonUtilities\CommonUtilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
