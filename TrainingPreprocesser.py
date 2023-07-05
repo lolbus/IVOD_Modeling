@@ -28,8 +28,9 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
         instances_to_processed = instances_each_class_desired[i]
         print(f"preparing {instances_to_processed} instances for class {c}")
         extra_data = metadata.EXTRA_DATA  # There are extra data instances (more than 10k) for some of the classes, for e.g (D) class has 34 extra instance
-        start_id_for_this_class = i * 10000 + extra_data[
-            i - 1] if i != 0 else 0  # 0-10033 for (D), 10034-20038 for (D+FP) 20039-30049 for (D+LB) 30050-40049(D+FP+LB)
+        '''start_id_for_this_class = i * 10000 + extra_data[
+            i - 1] if i != 0 else 0  # 0-10033 for (D), 10034-20038 for (D+FP) 20039-30049 for (D+LB) 30050-40049(D+FP+LB)'''
+        start_id_for_this_class = 0
         new_method_count = 0
         for count, (root, dirs, files) in enumerate(
                 os.walk(f"{training_json_path_directory}/{c}/")):  # ROOT_DIR/CLASS_FOLDER/

@@ -6,18 +6,25 @@ class DatasetMeta(object):
         # Data collection configs:
         # self.HOME_DIR = "C:/debug/data/"
         self.HOME_DIR = "C:/Users/WayneGuangWayTENGSof/Desktop/22June_DataCollection/"
-        # self.SAVE_DATA_DIR = self.HOME_DIR + "PassengerNo_3 (D+FP+LB)(C)"
-        self.SAVE_DATA_DIR = self.HOME_DIR + "PassengerNo_2 (D+FP)(C)"
+        #self.SAVE_DATA_DIR = self.HOME_DIR + "PassengerNo_1 (D)(C)"
+        #self.SAVE_DATA_DIR = self.HOME_DIR + "PassengerNo_2 (D+FP)(C)"
         self.SAVE_VID_DATA_DIR = self.HOME_DIR + "(VID)PassengerNo_0 (Empty)"
+
+        self.SAVE_DATA_DICT = {"D":  self.HOME_DIR + "PassengerNo_1 (D)(C)",
+                               "D+FP": self.HOME_DIR + "PassengerNo_2 (D+FP)(C)",
+                               "D+LB": self.HOME_DIR + "PassengerNo_2 (D+LB)(C)",
+                               "D+FP+LB": self.HOME_DIR + "PassengerNo_3 (D+FP+LB)(C)",
+                               "": self.HOME_DIR + "PassengerNo_1 (D)(C)"
+                               }
 
 
         # Training Preprocess configs:
-        self.data_class_distribution = [0, 0, 7400, 0,
+        self.data_class_distribution = [0, 0, 0, 7400, 0,
                                         0, 0, 10000, 1300, 1300]  # How much samples to draw for training data preprocessing
         self.augmentation_rate = [2, 0, 0, 0, 0, 0, 0, 0, 0] # How much to augment replicate each instance drawn
         # DROP UNDERSIZED FRAME CANNOT BE USED DURING INFERENCE
         # "Available: DUPLICATE RANDOM FRAMES / DROP IF INSUFFICIENT FRAMES / PAD ZEROS AT TAIL"
-        self.INPUT_PADDER_CONFIG = {"Min Frame Handler": "DROP IF INSUFFICIENT FRAMES"}
+        self.INPUT_PADDER_CONFIG = {"Min Frame Handler": "PAD ZEROS AT TAIL"}
 
         # Inference configs:
         self.modelDir = "C:/Users/WayneGuangWayTENGSof/Desktop/IVOD_Models/"  # Directory of saved weights checkpoint
@@ -31,6 +38,7 @@ class DatasetMeta(object):
         self.FRAME_SIZE = 180
         self.STR_TO_ONEHOT_LABELS = {"PassengerNo_0 (Empty)": str([0, 0, 0]),
                                      "PassengerNo_1 (D)": str([1, 0, 0]),
+                                     "PassengerNo_1 (D)(C)": str([1, 0, 0]),
                                      "PassengerNo_2 (D+FP)": str([1, 1, 0]),
                                      "PassengerNo_2 (D+LB)": str([1, 0, 1]),
                                      "PassengerNo_3 (D+FP+LB)": str([1, 1, 1]),
@@ -41,6 +49,7 @@ class DatasetMeta(object):
                                      }
         self.STR_TO_CLASS_LABELS = {"PassengerNo_0 (Empty)": 0,
                                     "PassengerNo_1 (D)": 1,
+                                    "PassengerNo_1 (D)(C)": 1,
                                     "PassengerNo_2 (D+FP)": 2,
                                     "PassengerNo_2 (D+LB)": 3,
                                     "PassengerNo_3 (D+FP+LB)": 4,
@@ -53,6 +62,7 @@ class DatasetMeta(object):
         self.ONEHOT_TO_STR_LABELS = {str([0, 0, 0]): "PassengerNo_0 (Empty)",
                                      str([0, 0, 0]): "PassengerNo_0 (Empty)2",
                                      str([1, 0, 0]): "PassengerNo_1 (D)",
+                                     str([1, 0, 0]): "PassengerNo_1 (D)(C)",
                                      str([1, 1, 0]): "PassengerNo_2 (D+FP)",
                                      str([1, 0, 1]): "PassengerNo_2 (D+LB)",
                                      str([1, 1, 1]): "PassengerNo_3 (D+FP+LB)",
@@ -61,7 +71,7 @@ class DatasetMeta(object):
                                      str([1, 1, 0]): "PassengerNo_2 (D+FP)(C2)"
                                      }
         self.STR_LABELS_LIST = list(self.STR_TO_ONEHOT_LABELS.keys())
-        self.EXTRA_DATA = [0, 34, 5, 10, 0, 0, 0, 0, 0]
+        self.EXTRA_DATA = [0, 0, 34, 0, 5, 10, 0, 0, 0, 0, 0]
         self.RGB_NORM_STAND_MEAN_CONSTANTS = [((0. - self.RGB_MIN_VALUES[0])/(self.RGB_MAX_VALUES[0]-self.RGB_MIN_VALUES[0]) - self.RGB_MEAN_VALUES[0])/self.RGB_STD_VALUES[0],
          ((0. - self.RGB_MIN_VALUES[1])/(self.RGB_MAX_VALUES[1]-self.RGB_MIN_VALUES[1]) - self.RGB_MEAN_VALUES[1])/self.RGB_STD_VALUES[1],
           ((0. - self.RGB_MIN_VALUES[2])/(self.RGB_MAX_VALUES[2]-self.RGB_MIN_VALUES[2]) - self.RGB_MEAN_VALUES[2])/self.RGB_STD_VALUES[2]

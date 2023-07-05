@@ -19,6 +19,9 @@ from svgpath2mpl import parse_path
 start_time = time.time()
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+
+
+
 # zmq
 topicfilter = "ivod_demo_dbscan"
 context = zmq.Context()
@@ -56,6 +59,15 @@ secondsLimit = 5
 peopleCluster = []
 centroidPoints = []
 people = 0
+
+#plt plot define
+fig = plt.figure(figsize=(15, 15))
+ax2 = fig.add_subplot(131, projection='3d')
+ax2.view_init(90,-90)
+ax = fig.add_subplot(132, projection='3d')
+ax.view_init(90,-90)
+ax3 = fig.add_subplot(133)
+
 
 def collect_data():
     start_time = time.time()
@@ -136,16 +148,18 @@ def graphing(i):
     except:
         pass
 
+def visualization_main():
+    print("Started visualization successfully")
+    ani = animation.FuncAnimation(fig, graphing, aniFrames, interval=time_limit)
+    plt.show()
+
 collection = Thread(target=collect_data)
 collection.start()
 
+'''collection = Thread(target=visualization_main)
+collection.start()
+'''
 if __name__ == "__main__":
-    print("Started successfully")
-    fig = plt.figure(figsize=(15, 15))
-    ax2 = fig.add_subplot(131, projection='3d')
-    ax2.view_init(90,-90)
-    ax = fig.add_subplot(132, projection='3d')
-    ax.view_init(90,-90)
-    ax3 = fig.add_subplot(133)
+    print("Started visualization successfully")
     ani = animation.FuncAnimation(fig, graphing, aniFrames, interval=time_limit)
     plt.show()

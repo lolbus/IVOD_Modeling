@@ -91,11 +91,24 @@ def IVODResnet34():
     modelA = modelA.to(device)
     return modelA
 
+class CCTV_modeler(object):
+    def __init__(self, detector):
+        self.detector = detector
+        self.counter = 0
+
+    def persondetector_evaluate_frame(self, input):
+        self.counter += 1
+        self.detector.detect_async(input, self.counter)
+        result = mpc.persondetector_predictionHandler.predictions
+        return result
+
 class modelloader(object):
     def __init__(self, modelname="IVOD V1"):
         self.metadata = DatasetMeta()
+        self.metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] = "PAD ZEROS AT TAIL"
         device = torch.device("cpu")
         models_dir = self.metadata.modelDir
+        self.modelname = modelname
         if modelname == "IVOD V1":
             self.FPPredictor = IVODResnet34()
             self.LBPredictor = IVODResnet34()
@@ -168,24 +181,48 @@ class modelloader(object):
             options = vision.ObjectDetectorOptions(
                 base_options=BaseOptions(model_asset_path=models_dir + '/CCTVPredictor/efficientdet.tflite'),
                 running_mode=VisionRunningMode.LIVE_STREAM,
-                max_results=3,
-                result_callback=mpc.persondetector_print_result, score_threshold=0.5)
+                max_results=1,
+                category_allowlist=["person"],
+                result_callback=mpc.persondetector_print_result, score_threshold=0.2)
             self.detector = vision.ObjectDetector.create_from_options(options)
+            self.CCTVHandler = CCTV_modeler(self.detector)
+            self.modeler = self.CCTVHandler.persondetector_evaluate_frame
+            self.modeler_positive_thresold = 0
         elif modelname == "ZERO_PAX_PREDICTOR":
-            self.ECPredictor = IVODResnet34()
-            self.ECPredictor.load_state_dict(
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
                 torch.load(models_dir + '/EC_Predictor/260623-V9E-EC180_best_model.pt',
                            map_location=device))
-            self.ECPredictor.eval()
+            self.modeler.eval()
             self.metadata.FRAME_SIZE = 180
-
-
-
+            self.modeler_positive_thresold = 0.5
+        elif modelname == "D+LB vs D Predictor (V14)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+LB_vs_D_Predictor/290623_D+LBvsD_Predictor180_best_model_v14.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.5
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
+        elif modelname == "D+FP+LB vs D+FP Predictor (V16)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+FP_vs_D+FP+LB_Predictor/300623_D+FPvsD+FP+LB_Predictor180_best_model.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.98
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
+        elif modelname == "D+FP Predictor (V18)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+FP_Predictor/300623_D+FP_Predictor180_best_model.pt',
+                           map_location=device))
+            self.modeler_positive_thresold=0.5
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
         self.fp_positive_thresold = 0.90
         self.lb_positive_thresold = 0.99
         self.ec_positive_thresold = 0.5
-
-
 
     def persondetector_evaluate_frame(self, input, counter):
         self.detector.detect_async(input, counter)
@@ -214,5 +251,12 @@ class modelloader(object):
             Predict = (Score > 0.5).long().item()
             passengerNo = 3 if Predict == 1 else -1
             return Predict, Score, passengerNo
+
+    def calculate_modeler_binary_output(self, input):
+        modeler = self.modeler
+        with torch.no_grad():
+            score = torch.sigmoid(modeler(input))
+            print("score of predict", score)
+            return 1. if score > self.modeler_positive_thresold else 0.
 
 

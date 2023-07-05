@@ -8,11 +8,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from threading import Thread
+import record_and_save_cctv as CCTVHandler
+import InferenceLogicMap
 
 
 class status_handler(object):
     def __init__(self):
         self.updated = False
+        self.models_dict = {"ZERO_PAX_PREDICTOR": m.modelloader("ZERO_PAX_PREDICTOR"),
+                            "CCTV_MP_PERSON_PREDICTOR": m.modelloader("CCTV_MP_PERSON_PREDICTOR"),
+                            "D+LB vs D Predictor (V14)": m.modelloader("D+LB vs D Predictor (V14)"),
+                            "D+FP+LB vs D+FP Predictor (V16)": m.modelloader("D+FP+LB vs D+FP Predictor (V16)"),
+                            "D+FP Predictor (V18)": m.modelloader("D+FP Predictor (V18)")}
 
 
 statushandler = status_handler()
@@ -178,12 +185,86 @@ def unpack_data(r1, r2):
     unpacked_r2 = [frame for s in r2 for frame in s]
     return unpacked_r1, unpacked_r2
 
+def mvp_v3_inference():
+    '''perform inference using the mvp_v3 logic map, input global data, output total passenger No'''
+
+    logic_map = InferenceLogicMap.MVP_Model3_Logic_Map
+    model_wrapper = InferenceLogicMap.ModelMapper
+    result = -1
+    current_status = "0 Pax Predictor"
+    while result == -1:
+        model_name = model_wrapper[current_status]
+        model = statushandler.models_dict[model_name]
+        input, im, pprocess_time_take = ieh.live_inference_preprocess(
+            unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE], unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE])
+        print("current status", current_status, model)
+        if current_status == "CCTV Person Counter":
+            binary_output = max(CCTVHandler.statusHandler.pax_counter_list)
+        else:
+            binary_output = model.calculate_modeler_binary_output(input)
+        next_status = logic_map[current_status][int(binary_output)]
+        if type(next_status) == int:
+            result = next_status
+        current_status = next_status
+    return result
+
+def mvp_v4_inference():
+    '''perform inference using the mvp_v3 logic map, input global data, output total passenger No'''
+
+    logic_map = InferenceLogicMap.MVP_Model4_Logic_Map
+    model_wrapper = InferenceLogicMap.ModelMapper
+    result = -1
+    current_status = "0 Pax Predictor"
+    end = False
+    while not end:
+        model_name = model_wrapper[current_status]
+        model = statushandler.models_dict[model_name]
+        input, im, pprocess_time_take = ieh.live_inference_preprocess(
+            unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE], unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE])
+        print("current status", current_status, model)
+        if current_status == "CCTV Person Counter":
+            binary_output = max(CCTVHandler.statusHandler.pax_counter_list)
+        else:
+            binary_output = model.calculate_modeler_binary_output(input)
+        next_status, end = logic_map[current_status][int(binary_output)]
+        #if type(next_status) == int:
+        if end:
+            result = next_status
+        current_status = next_status
+    return result
+def mvp_v5_inference():
+    '''perform inference using the mvp_v3 logic map, input global data, output total passenger No'''
+
+    logic_map = InferenceLogicMap.MVP_Model5_Logic_Map
+    model_wrapper = InferenceLogicMap.ModelMapper
+    result = -1
+    current_status = "0 Pax Predictor"
+    end = False
+    while not end:
+        model_name = model_wrapper[current_status]
+        model = statushandler.models_dict[model_name]
+        input, im, pprocess_time_take = ieh.live_inference_preprocess(
+            unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE], unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE])
+        print("current status", current_status, model)
+        if current_status == "CCTV Person Counter":
+            binary_output = max(CCTVHandler.statusHandler.pax_counter_list)
+        else:
+            binary_output = model.calculate_modeler_binary_output(input)
+        next_status, end = logic_map[current_status][int(binary_output)]
+        #if type(next_status) == int:
+        if end:
+            result = next_status
+        current_status = next_status
+    return result
+
+
 
 def inference():
     # initialize by collecting 10s worth of data first
 
     while len(unpacked_radar_stream_1) < 1 or len(unpacked_radar_stream_2) < 1 or not statushandler.updated:
         print("Updated status", statushandler.updated)
+        print("CCTV predict:", max(CCTVHandler.statusHandler.pax_counter_list))
         time.sleep(0.5)
     else:
         print("Okay to infer sec of data available for r1 and r2", len(unpacked_radar_stream_1),
@@ -199,7 +280,7 @@ def inference():
     for i in range(run_time):
         if statushandler.updated:
             # Inference Preprocess
-            print("Inferring data of length:", len(unpacked_radar_stream_1), len(unpacked_radar_stream_2))
+            '''print("Inferring data of length:", len(unpacked_radar_stream_1), len(unpacked_radar_stream_2))
             input, im, pprocess_time_take = ieh.live_inference_preprocess(
                 unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE], unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE])
 
@@ -224,8 +305,9 @@ def inference():
 
             print(
                 f"Prediction: D:1 FP:{FP_Predict} FP Confidence: {FP_confidence_score} \nPrediction:  LB:{LB_Predict} LB Confidence: {LB_confidence_score} Time Taken for Preprocess: {pprocess_time_take}, for calculations {end_calc}")
-            # print(f"Total passengers predicts {total_passengers}. Total Inference duration {pprocess_time_take + end_calc}")
+            # print(f"Total passengers predicts {total_passengers}. Total Inference duration {pprocess_time_take + end_calc}") '''
             TIME_STEP.append(i)
+            total_passengers = mvp_v4_inference()
             PAST_PREDICTS.append(total_passengers)
             if len(TIME_STEP) > 10:
                 TIME_STEP = TIME_STEP[1:]
@@ -236,9 +318,10 @@ def inference():
             y_data = PAST_PREDICTS
             statushandler.updated = False
             pubSocket.send_string(topic + " " + str(y_data[-1]))
+            print("Predicts memory: ", y_data)
         # print(x_data)
         # print(y_data)
-        time.sleep(1)
+        time.sleep(3)
 
     end_loop = time.time() - start_loop
     print(f"Completed 100 predicts in {end_loop}")
@@ -253,7 +336,16 @@ update_data_static.start()
 collection = Thread(target=inference)
 collection.start()
 
-while len(x_data) < 10:
+streaming_thread = Thread(target=CCTVHandler.stream)
+streaming_thread.start()
+
+infer_thread = Thread(target=CCTVHandler.infer_and_save)
+infer_thread.start()
+
+
+
+'''while len(x_data) < 10:
     print("Not enough  data collected yet", len(x_data))
-    time.sleep(10)
+    time.sleep(1)
 updateGraph()
+'''

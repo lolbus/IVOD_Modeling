@@ -24,6 +24,10 @@ class statusHandler():
         self.save = False
         self.processed_frame = None
         self.FirstLoop = True
+        self.pax_counter = 0
+        self.pax_counter_list = [0, 0, 0, 0, 0]
+
+
 statusHandler = statusHandler()
 
 MARGIN = 10  # pixels
@@ -71,14 +75,18 @@ def count_people(pax_predictor_output):
             count += 1
     return count
 def infer_and_save():
-    counter = 0
+    counter = 1
     while True:
         if statusHandler.ret:
             counter += 1
             output = model.persondetector_evaluate_frame(statusHandler.mp_image, counter)
-            print(f"Output: {output}")
-            pax_count = count_people(output[-1])
-            print("total pax", pax_count)
+
+            # print(f"Output: {output}")
+            statusHandler.pax_counter = count_people(output[-1])
+            statusHandler.pax_counter_list.append(statusHandler.pax_counter)
+            if len(statusHandler.pax_counter_list) > 5:
+                statusHandler.pax_counter_list = statusHandler.pax_counter_list[-5:]
+            #  print("total pax", statusHandler.pax_counter)
             statusHandler.processed_frame = visualize(statusHandler.frame, output[-1])
             # print("T", visualize_output)
             statusHandler.ret = False
@@ -106,12 +114,13 @@ def stream():
 
             ret, frame = cap.read()
             statusHandler.ret = ret
-            statusHandler.frame = frame
-            statusHandler.mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+            if ret:
+                statusHandler.frame = frame
+                statusHandler.mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
 
-            # Display the frame
-            if not statusHandler.FirstLoop:
-                cv2.imshow("CCTV Stream", statusHandler.processed_frame)
+                # Display the frame
+                if not statusHandler.FirstLoop:
+                    cv2.imshow("CCTV Stream", statusHandler.processed_frame)
 
             # Break the loop if 'q' is pressed
             if cv2.waitKey(10) & 0xFF == ord('q'):
@@ -126,10 +135,11 @@ def stream():
 
     #print(f'Extracted {counter} frames from the video and saved them into {output_dir}.')
 
-streaming_thread = Thread(target=stream)
+'''streaming_thread = Thread(target=stream)
 streaming_thread.start()
 
 
-streaming_thread = Thread(target=infer_and_save)
-streaming_thread.start()
+infer_thread = Thread(target=infer_and_save)
+infer_thread.start()
 
+'''
