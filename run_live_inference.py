@@ -89,7 +89,6 @@ model = m.modelloader(modelname=model_name)
 print("Completed Model Loading")
 
 
-
 def collect_data_static_loop():
     global unpacked_radar_stream_1, unpacked_radar_stream_2
     unpacked_radar_stream_1 = []
@@ -185,6 +184,7 @@ def unpack_data(r1, r2):
     unpacked_r2 = [frame for s in r2 for frame in s]
     return unpacked_r1, unpacked_r2
 
+
 def mvp_v3_inference():
     '''perform inference using the mvp_v3 logic map, input global data, output total passenger No'''
 
@@ -208,9 +208,9 @@ def mvp_v3_inference():
         current_status = next_status
     return result
 
+
 def mvp_v4_inference():
     '''perform inference using the mvp_v3 logic map, input global data, output total passenger No'''
-
     logic_map = InferenceLogicMap.MVP_Model4_Logic_Map
     model_wrapper = InferenceLogicMap.ModelMapper
     result = -1
@@ -232,9 +232,10 @@ def mvp_v4_inference():
             result = next_status
         current_status = next_status
     return result
+
+
 def mvp_v5_inference():
     '''perform inference using the mvp_v3 logic map, input global data, output total passenger No'''
-
     logic_map = InferenceLogicMap.MVP_Model5_Logic_Map
     model_wrapper = InferenceLogicMap.ModelMapper
     result = -1
@@ -258,10 +259,8 @@ def mvp_v5_inference():
     return result
 
 
-
 def inference():
     # initialize by collecting 10s worth of data first
-
     while len(unpacked_radar_stream_1) < 1 or len(unpacked_radar_stream_2) < 1 or not statushandler.updated:
         print("Updated status", statushandler.updated)
         print("CCTV predict:", max(CCTVHandler.statusHandler.pax_counter_list))
@@ -283,7 +282,6 @@ def inference():
             '''print("Inferring data of length:", len(unpacked_radar_stream_1), len(unpacked_radar_stream_2))
             input, im, pprocess_time_take = ieh.live_inference_preprocess(
                 unpacked_radar_stream_1[0:model.metadata.FRAME_SIZE], unpacked_radar_stream_2[0:model.metadata.FRAME_SIZE])
-
             # Calculations
             start_calc = time.time()
             FP_Predict, LB_Predict, FP_Score, LB_Score, passengerNo = model.calculate_output(input)
@@ -319,16 +317,9 @@ def inference():
             statushandler.updated = False
             pubSocket.send_string(topic + " " + str(y_data[-1]))
             print("Predicts memory: ", y_data)
-        # print(x_data)
-        # print(y_data)
         time.sleep(3)
-
     end_loop = time.time() - start_loop
     print(f"Completed 100 predicts in {end_loop}")
-
-
-# updatedata = Thread(target=collect_and_update_data)
-# updatedata.start()
 
 update_data_static = Thread(target=collect_data_static_loop)
 update_data_static.start()

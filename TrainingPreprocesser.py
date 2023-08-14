@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 metadata = DatasetMeta()
-instances_each_class_desired = metadata.data_class_distribution
+# instances_each_class_desired = metadata.data_class_distribution
 
 def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
     '''
@@ -24,8 +24,8 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
     training_files = []
 
     # loop over all D, D+FP and D+FP+LB folders, load all the related files into list object
-    for i, c in enumerate(metadata.STR_LABELS_LIST):
-        instances_to_processed = instances_each_class_desired[i]
+    for _, c in enumerate(metadata.STR_LABELS_LIST):
+        instances_to_processed = metadata.DistributionDict[c]
         print(f"preparing {instances_to_processed} instances for class {c}")
         extra_data = metadata.EXTRA_DATA  # There are extra data instances (more than 10k) for some of the classes, for e.g (D) class has 34 extra instance
         '''start_id_for_this_class = i * 10000 + extra_data[
@@ -69,10 +69,7 @@ def osdir_handler(training_json_path_directory='./', bad_data_folders=[]):
                     bad_datainstance = [data_id, c, root]
                     print(f"Bad data detected!!!{bad_datainstance}. count {count} foldername {id_identity}")
 
-
-
-            
-        print(f"completed loading for class {c} {metadata.STR_TO_ONEHOT_LABELS[c]}. Total instances {len(training_files)}")
+        print(f"completed loading for class {c} {metadata.STR_TO_ONEHOT_LABELS[c]}. Total instances {len(training_files)} \n")
 
     time_take = time.time() - start
     return training_files, time_take

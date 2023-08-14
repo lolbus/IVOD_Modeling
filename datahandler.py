@@ -22,11 +22,15 @@ def data_framesize_padder_handler(data_list: list, max_len: int, mode='zero_padd
     Input: list of data points / multiple [x, y, z] lists
     Output: list of data points / multiple [x, y, z] lists with padded [0, 0, 0] lists such that len(output) matches max_len
     '''
-    while len(data_list) < max_len:
+    required_paddings = max_len - len(data_list)
+    for i in range(required_paddings):
         data_list.append([0., 0., 0.])
-    if len(data_list) > max_len:
-        print("WARNING! It seems like max len isnt enough to utilize the data efficiently")
-        return []
+
+    if not len(data_list) == max_len:
+        print("WARNING! It seems like max len isnt enough to utilize the data efficiently", len(data_list))
+        data_list = data_list[:max_len]
+        print("After correcting..", len(data_list))
+        return data_list
     else:
         return data_list
 
@@ -110,14 +114,24 @@ def pad_frames_list(radar1list: list, radar2list: list):
     Output padded radar 1 converted to tensor object of desired width
     '''
     # Pad width
+    correct_radar1list = []
+    correct_radar2list = []
     for frame in radar1list:
-        frame = data_framesize_padder_handler(frame, metadata.FRAME_LENGTH)
+        f = data_framesize_padder_handler(frame, metadata.FRAME_LENGTH)
+        if not len(f) == metadata.FRAME_LENGTH:
+            print("ops something wrong with the padder", len(f))
+        else:
+            correct_radar1list.append(f)
     for frame in radar2list:
-        frame = data_framesize_padder_handler(frame, metadata.FRAME_LENGTH)
+        f = data_framesize_padder_handler(frame, metadata.FRAME_LENGTH)
+        if not len(f) == metadata.FRAME_LENGTH:
+            print("ops something wrong with the padder", len(f))
+        else:
+            correct_radar2list.append(f)
 
     # torch_tensor_radar1 = data_frames_padder_handler(radar1list, metadata.FRAME_LENGTH, metadata.FRAME_SIZE)
     # torch_tensor_radar2 = data_frames_padder_handler(radar2list, metadata.FRAME_LENGTH, metadata.FRAME_SIZE)
-    return radar1list, radar2list
+    return correct_radar1list, correct_radar2list
 
 
 def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="torch.float32"):
@@ -129,10 +143,23 @@ def data_frames_padder_handler(data_list: list, frames_size, max_len, dtype="tor
     Input: list of frame points
     Output: tensor with correct size
     '''
-    d = torch.tensor(data_list, dtype=eval(dtype))
-    # print(d.size())
+    # print('error size',len(data_list))
+    try:
+        d = torch.tensor(data_list, dtype=eval(dtype))
+    except Exception as e:
+        print(e)
+        print("failed to process datalist",d)
+        for i, frame in enumerate(d):
+            print(f"len for frame {i}, has len {d}")
+            #correction
+            if not len(frame) == max_len:
+                print("weird frame detected need correction", frame)
+                d[i] = frame[:max_len]
+        d = torch.tensor(data_list, dtype=eval(dtype))
+
     if len(data_list) < frames_size:
         required_rows = frames_size - len(data_list)
+        print(f"padding required rows: {required_rows}")
         if metadata.INPUT_PADDER_CONFIG["Min Frame Handler"] == "PAD ZEROS AT TAIL":
             padding_zeros = torch.zeros((required_rows, max_len, 3), dtype=eval(dtype))
             d = torch.cat((d, padding_zeros))
@@ -182,6 +209,7 @@ def tensorize_list(this_data_radar1_frames_list, this_data_radar2_frames_list, f
         check_size_list_result[2], check_size_list_result[1])  # return bad data id, followed by reason as a tuple
     else:'''
     if radar1_pad_success and radar2_pad_success:
+        # print('sizes', torch_tensor_radar1.size(), torch_tensor_radar2.size())
         torch_tensor = torch.cat((torch_tensor_radar1, torch_tensor_radar2), dim=1)
         return torch_tensor
     else:

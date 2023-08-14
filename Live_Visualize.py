@@ -35,6 +35,7 @@ man_path, attributes = svg2paths('user.svg')
 man_marker = parse_path(attributes[0]['d'])
 man_marker.vertices -= man_marker.vertices.mean(axis=0)
 
+
 sleep(1)
 aniFrames = 2
 time_limit = 500 * aniFrames

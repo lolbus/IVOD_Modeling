@@ -10,8 +10,8 @@ from threading import Thread
 metadata = DatasetMeta()
 model = modelloader("CCTV_MP_PERSON_PREDICTOR")
 # Define the path to the video stream (replace with your actual RTSP URL)
-rtsp_url = 'rtsp://root:pass@192.168.70.2/axis-media/media.amp?videocodec=h264&resolution=640x360'
-
+#rtsp_url = 'rtsp://root:pass@192.168.70.2/axis-media/media.amp?videocodec=h264&resolution=640x360'
+rtsp_url = 'rtsp://admin:P@ssw0rd@192.168.1.100:554/profile1/media.smp'
 # Define the directory where to save the images
 output_dir = metadata.SAVE_VID_DATA_DIR
 os.makedirs(output_dir, exist_ok=True)
@@ -92,7 +92,7 @@ def infer_and_save():
             statusHandler.ret = False
             if statusHandler.FirstLoop:
                 statusHandler.FirstLoop = False
-            time.sleep(0.5)
+            #time.sleep(0.5)
         if statusHandler.save:
             # Define the filename of the image
             img_filename = os.path.join(output_dir, f'image_{str(counter).zfill(5)}.png')
@@ -141,5 +141,4 @@ streaming_thread.start()
 
 infer_thread = Thread(target=infer_and_save)
 infer_thread.start()
-
 '''

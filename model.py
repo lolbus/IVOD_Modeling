@@ -195,13 +195,21 @@ class modelloader(object):
                            map_location=device))
             self.modeler.eval()
             self.metadata.FRAME_SIZE = 180
-            self.modeler_positive_thresold = 0.5
+            self.modeler_positive_thresold = 1.05
         elif modelname == "D+LB vs D Predictor (V14)":
             self.modeler = IVODResnet34()
             self.modeler.load_state_dict(
                 torch.load(models_dir + '/D+LB_vs_D_Predictor/290623_D+LBvsD_Predictor180_best_model_v14.pt',
                            map_location=device))
-            self.modeler_positive_thresold = 0.5
+            self.modeler_positive_thresold = 0.2
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
+        elif modelname == "D+LB vs D Predictor (V22)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+LB_vs_D_Predictor/100723_D+LBvsD_Predictor180_best_model_v22.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.6
             self.metadata.FRAME_SIZE = 180
             self.modeler.eval()
         elif modelname == "D+FP+LB vs D+FP Predictor (V16)":
@@ -212,12 +220,52 @@ class modelloader(object):
             self.modeler_positive_thresold = 0.98
             self.metadata.FRAME_SIZE = 180
             self.modeler.eval()
+        elif modelname == "D+FP+LB vs D+FP Predictor (V24)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+FP_vs_D+FP+LB_Predictor/120723_D+FP+LBvsD+FP_Predictor180_best_model_v24.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.5
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
         elif modelname == "D+FP Predictor (V18)":
             self.modeler = IVODResnet34()
             self.modeler.load_state_dict(
                 torch.load(models_dir + '/D+FP_Predictor/300623_D+FP_Predictor180_best_model.pt',
                            map_location=device))
-            self.modeler_positive_thresold=0.5
+            self.modeler_positive_thresold=0.2
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
+        elif modelname == "D+FP Predictor (V20)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+FP_Predictor/120723_D+FP_Predictor180_best_model_v20.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.5
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
+        elif modelname == "D+FP Predictor (V34)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+FP_Predictor/100823-D+FP_Predictor180_best_model_v34.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.5
+            self.metadata.FRAME_SIZE = 180
+            self.modeler.eval()
+        elif modelname == "ZERO_PAX_PREDICTOR (V35)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/EC_Predictor/100823-EC180_best_model_V35.pt',
+                           map_location=device))
+            self.modeler.eval()
+            self.metadata.FRAME_SIZE = 180
+            self.modeler_positive_thresold = 0.5
+        elif modelname == "D+LB vs D Predictor (V32)":
+            self.modeler = IVODResnet34()
+            self.modeler.load_state_dict(
+                torch.load(models_dir + '/D+LB_vs_D_Predictor/100823-D+LBvsD_Predictor180_best_model_V32.pt',
+                           map_location=device))
+            self.modeler_positive_thresold = 0.5
             self.metadata.FRAME_SIZE = 180
             self.modeler.eval()
         self.fp_positive_thresold = 0.90
@@ -256,7 +304,7 @@ class modelloader(object):
         modeler = self.modeler
         with torch.no_grad():
             score = torch.sigmoid(modeler(input))
-            print("score of predict", score)
-            return 1. if score > self.modeler_positive_thresold else 0.
+            #print("score of predict", score)
+            return 1. if score > self.modeler_positive_thresold else 0., score
 
 

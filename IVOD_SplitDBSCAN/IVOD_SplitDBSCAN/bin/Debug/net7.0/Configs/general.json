@@ -20,7 +20,12 @@
   "dbscanParams": {
     "rawEps": 0.4,
     "rawMin": 6,
-    "centEps": 0.3,
-    "centMin":  4
+    "centEps": 0.4,
+    "centMin": 8
+  },
+  "slicingParams": {
+    "rangeInter": 15,
+    "azimuthInter": 16,
+    "elevationInter": 8
   }
 }

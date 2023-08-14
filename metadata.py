@@ -17,10 +17,10 @@ class DatasetMeta(object):
                                "": self.HOME_DIR + "PassengerNo_1 (D)(C)"
                                }
 
-
         # Training Preprocess configs:
-        self.data_class_distribution = [0, 0, 0, 7400, 0,
-                                        0, 0, 10000, 1300, 1300]  # How much samples to draw for training data preprocessing
+        '''self.data_class_distribution = [0, 10000, 7400, 10000, 0,
+                                        0, 10000, 5900, 1300, 1300,
+                                        7300]  # How much samples to draw for training data preprocessing'''
         self.augmentation_rate = [2, 0, 0, 0, 0, 0, 0, 0, 0] # How much to augment replicate each instance drawn
         # DROP UNDERSIZED FRAME CANNOT BE USED DURING INFERENCE
         # "Available: DUPLICATE RANDOM FRAMES / DROP IF INSUFFICIENT FRAMES / PAD ZEROS AT TAIL"
@@ -36,20 +36,38 @@ class DatasetMeta(object):
         self.RGB_STD_VALUES = (130.43618906/255.,  81.93117782/255., 128.05481866/255.)
         self.FRAME_LENGTH = 149
         self.FRAME_SIZE = 180
+
+        self.DistributionDict = {
+            "PassengerNo_0 (Empty)": 0,
+            "PassengerNo_1 (D)": 10000,
+            "PassengerNo_2 (D+FP)": 7400,
+            "PassengerNo_2 (D+LB)": 10000,
+            "PassengerNo_3 (D+FP+LB)": 0,
+            "PassengerNo_0 (Empty)2": 0,
+            "PassengerNo_3 (D+FP+LB)(C)": 10000,
+            "PassengerNo_2 (D+FP)(C)": 5900,
+            "PassengerNo_2 (D+FP)(C2)": 1300,
+            "PassengerNo_1 (D)(C)": 7300
+        }
+
+        # In seniority order
         self.STR_TO_ONEHOT_LABELS = {"PassengerNo_0 (Empty)": str([0, 0, 0]),
                                      "PassengerNo_1 (D)": str([1, 0, 0]),
-                                     "PassengerNo_1 (D)(C)": str([1, 0, 0]),
                                      "PassengerNo_2 (D+FP)": str([1, 1, 0]),
                                      "PassengerNo_2 (D+LB)": str([1, 0, 1]),
                                      "PassengerNo_3 (D+FP+LB)": str([1, 1, 1]),
                                      "PassengerNo_0 (Empty)2": str([0, 0, 0]),
                                      "PassengerNo_3 (D+FP+LB)(C)": str([1, 1, 1]),
                                      "PassengerNo_2 (D+FP)(C)": str([1, 1, 0]),
-                                     "PassengerNo_2 (D+FP)(C2)": str([1, 1, 0])
+                                     "PassengerNo_2 (D+FP)(C2)": str([1, 1, 0]),
+                                     "PassengerNo_1 (D)(C)": str([1, 0, 0])
                                      }
+
+        self.STR_LABELS_LIST = list(self.DistributionDict.keys())
+
+        # In seniority order
         self.STR_TO_CLASS_LABELS = {"PassengerNo_0 (Empty)": 0,
                                     "PassengerNo_1 (D)": 1,
-                                    "PassengerNo_1 (D)(C)": 1,
                                     "PassengerNo_2 (D+FP)": 2,
                                     "PassengerNo_2 (D+LB)": 3,
                                     "PassengerNo_3 (D+FP+LB)": 4,
@@ -57,21 +75,18 @@ class DatasetMeta(object):
                                     "PassengerNo_3 (D+FP+LB)(C)": 4,
                                     "PassengerNo_2 (D+FP)(C)": 2,
                                     "PassengerNo_2 (D+FP)(C2)": 2,
+                                    "PassengerNo_1 (D)(C)": 1,
                                     "Inferencing an Unknown": -1
                                     }
         self.ONEHOT_TO_STR_LABELS = {str([0, 0, 0]): "PassengerNo_0 (Empty)",
-                                     str([0, 0, 0]): "PassengerNo_0 (Empty)2",
                                      str([1, 0, 0]): "PassengerNo_1 (D)",
-                                     str([1, 0, 0]): "PassengerNo_1 (D)(C)",
                                      str([1, 1, 0]): "PassengerNo_2 (D+FP)",
                                      str([1, 0, 1]): "PassengerNo_2 (D+LB)",
                                      str([1, 1, 1]): "PassengerNo_3 (D+FP+LB)",
-                                     str([1, 1, 1]): "PassengerNo_3 (D+FP+LB)(C)",
-                                     str([1, 1, 0]): "PassengerNo_2 (D+FP)(C)",
-                                     str([1, 1, 0]): "PassengerNo_2 (D+FP)(C2)"
                                      }
-        self.STR_LABELS_LIST = list(self.STR_TO_ONEHOT_LABELS.keys())
-        self.EXTRA_DATA = [0, 0, 34, 0, 5, 10, 0, 0, 0, 0, 0]
+
+        self.EXTRA_DATA = [0, 0, 34, 0, 5,
+                           10, 0, 0, 0, 0, 0]
         self.RGB_NORM_STAND_MEAN_CONSTANTS = [((0. - self.RGB_MIN_VALUES[0])/(self.RGB_MAX_VALUES[0]-self.RGB_MIN_VALUES[0]) - self.RGB_MEAN_VALUES[0])/self.RGB_STD_VALUES[0],
          ((0. - self.RGB_MIN_VALUES[1])/(self.RGB_MAX_VALUES[1]-self.RGB_MIN_VALUES[1]) - self.RGB_MEAN_VALUES[1])/self.RGB_STD_VALUES[1],
           ((0. - self.RGB_MIN_VALUES[2])/(self.RGB_MAX_VALUES[2]-self.RGB_MIN_VALUES[2]) - self.RGB_MEAN_VALUES[2])/self.RGB_STD_VALUES[2]

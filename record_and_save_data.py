@@ -7,7 +7,7 @@ from metadata import DatasetMeta
 import os
 import InferenceEngineHandler as ieh
 from pynput import keyboard
-import record_and_save_cctv as CCTVHandler
+# import record_and_save_cctv as CCTVHandler
 import InferenceLogicMap
 import Live_Visualize
 
@@ -23,25 +23,33 @@ class status_handler(object):
         self.data_radar_2 = []
         self.data_radar_1_conv =[]
         self.data_radar_2_conv = []
-        self.models_dict = {"ZERO_PAX_PREDICTOR": m.modelloader("ZERO_PAX_PREDICTOR"),
-                            "CCTV_MP_PERSON_PREDICTOR": m.modelloader("CCTV_MP_PERSON_PREDICTOR"),
-                            "D+LB vs D Predictor (V14)": m.modelloader("D+LB vs D Predictor (V14)"),
-                            "D+FP+LB vs D+FP Predictor (V16)": m.modelloader("D+FP+LB vs D+FP Predictor (V16)"),
-                            "D+FP Predictor (V18)": m.modelloader("D+FP Predictor (V18)")}
+        self.models_dict = {}
+        for key in InferenceLogicMap.ModelMapper:
+            value = InferenceLogicMap.ModelMapper[key]
+            if value not in self.models_dict.keys():
+                self.models_dict[value] = m.modelloader(value)
         self.str_true_label_of_interest = ""
         self.pax_count_of_interest = 0
         self.directory = ""
         self.save_incorrect_only = False
-
+        self.prompting = False
+        self.saved_data_count = 0
+        self.not_collection = False
 
 statushandler = status_handler()
 
+
 def on_press(key):
-    if key == keyboard.Key.space:
-        statushandler.start = not statushandler.start
-        if statushandler.start:
+    if key == keyboard.Key.f9:
+        if not statushandler.start:
             prompt_settings()
-        print(f'Space bar pressed. Started:{statushandler.start}')
+        else:
+            statushandler.start = False
+            statushandler.prompting = True
+            print("Stopped!")
+            time.sleep(5)
+            statushandler.prompting = False
+        print(f'Enter button pressed. Started:{statushandler.start}')
 
 context = zmq.Context()
 # publish output target
@@ -54,7 +62,7 @@ subSocket = context.socket(zmq.SUB)
 subSocket.connect("tcp://192.168.70.120:11002")
 subSocket.setsockopt_string(zmq.SUBSCRIBE, "radar_data")
 
-
+#statushandler
 # Update function
 def collect_data(duration_requested: int):
     ml_data_array1 = []
@@ -153,33 +161,34 @@ def collect_and_save_data_static_loop():
                         this_frame_pts_2_conventional.append(tmp_conventional)
             if name == "radar1" and len(this_frame_pts_1) > 0:
                 # ml_data_array1.append(this_frame_pts_1)
-                statushandler.data_radar_1.append(this_frame_pts_1)
-                statushandler.data_radar_1_conv.append(this_frame_pts_1_conventional)
+                statushandler.data_radar_1.append(this_frame_pts_1[:149])
+                statushandler.data_radar_1_conv.append(this_frame_pts_1_conventional[:149])
+                #print("add this_frame_pts_1_conventional[:149]", len(this_frame_pts_1_conventional[:149]))
             elif name == "radar2" and len(this_frame_pts_2) > 0:
                 # ml_data_array2.append(this_frame_pts_2)
-                statushandler.data_radar_2.append(this_frame_pts_2)
-                statushandler.data_radar_2_conv.append(this_frame_pts_2_conventional)
+                statushandler.data_radar_2.append(this_frame_pts_2[:149])
+                statushandler.data_radar_2_conv.append(this_frame_pts_2_conventional[:149])
+                #print("add this_frame_pts_2_conventional[:149]", len(this_frame_pts_2_conventional[:149]))
             statushandler.updated = True
-
-
-
-
 
 
 def write(data: list, to: str):
     with open(to, "w") as file:
         file.write(str(data))
-        print("Finished writing: ", to)
+        #print("Finished writing: ", to)
 
 def save_data():
-    print("Saving data of length:", len(statushandler.data_radar_1), len(statushandler.data_radar_2))
+    # print("Saving data of length:", len(statushandler.data_radar_1), len(statushandler.data_radar_2))
     d = [statushandler.data_radar_1[0:model.metadata.FRAME_SIZE],
          statushandler.data_radar_2[0:model.metadata.FRAME_SIZE]]
 
     file_count = str(len(os.listdir(statushandler.directory)))
     filename = statushandler.directory + "/" + file_count + ".txt"
+    if statushandler.saved_data_count % 10 == 0:
+        print(f"Finished writing 10 files. Writing to..", filename)
     write(data=d, to=filename)
     statushandler.updated = False
+    statushandler.saved_data_count += 1
 
 def inference_and_save():
     check_ready()
@@ -195,12 +204,12 @@ def inference_and_save():
                     statushandler.data_radar_2_conv[0:model.metadata.FRAME_SIZE])
 
                 # Calculations
-                EC_Predict, EC_Score, passengerNo = model.calculate_ec_output(input)
+                #EC_Predict, EC_Score, passengerNo = model.calculate_ec_output(input)
                 #Test_Predict, Test_Score, Test_passengerNo = model.calculate_test_output(input)
 
 
                 # Print predict result
-                print(f"The Car is Empty: {EC_Predict}, Score {EC_Score}  PassengerNo: {passengerNo}. Press space bar to start..")
+                #print(f"The Car is Empty: {EC_Predict}, Score {EC_Score}  PassengerNo: {passengerNo}. Press space bar to start..")
 
                 #print(f"Test Model: {Test_Predict}, +ve Score {Test_Score}  PassengerNo: {Test_passengerNo}. Press space bar to start..")
             else:
@@ -208,12 +217,20 @@ def inference_and_save():
                 if not statushandler.save_incorrect_only:
                     save_data()
                 else:
-                    correct_predict = statushandler.pax_count_of_interest == statushandler.predict_memory[-1]
-                    if not correct_predict:
-                        save_data()
-                    else:
-                        print("correct predict detected, not saving the current data")
+                    if not statushandler.not_collection:
+                        # trigger is not correct predict (target not equal predict)
+                        trigger = not statushandler.pax_count_of_interest == statushandler.predict_memory[-1]
 
+                    else:
+                        # trigger is get an equal predict when collecting NOT instances of target
+                        trigger = statushandler.pax_count_of_interest == statushandler.predict_memory[-1]
+                    if trigger:
+                        save_data()
+                        #print("save an instance of in corect predict success")
+                        #time.sleep(1)
+                    else:
+                         print("no trigger detected, not saving the current data")
+                         time.sleep(0.5)
         time.sleep(1)
     end_loop = time.time() - start_loop
     print(f"Completed 100 predicts in {end_loop}")
@@ -226,21 +243,26 @@ def mvp_v4_inference():
     result = -1
     current_status = "0 Pax Predictor"
     end = False
+    LogicSequence = []
     while not end:
         model_name = model_wrapper[current_status]
         model = statushandler.models_dict[model_name]
         input, im, pprocess_time_take = ieh.live_inference_preprocess(
             statushandler.data_radar_1_conv[0:model.metadata.FRAME_SIZE], statushandler.data_radar_2_conv[0:model.metadata.FRAME_SIZE])
-        print("current status", current_status, model)
+        #print("current status", current_status, model)
         if current_status == "CCTV Person Counter":
-            binary_output = max(CCTVHandler.statusHandler.pax_counter_list)
+            #binary_output, score = max(CCTVHandler.statusHandler.pax_counter_list), 1.
+            binary_output, score = 0, 0.0
         else:
-            binary_output = model.calculate_modeler_binary_output(input)
+            binary_output, score = model.calculate_modeler_binary_output(input)
         next_status, end = logic_map[current_status][int(binary_output)]
+        this_step = current_status
+        LogicSequence.append((this_step, round(score.item(), 5)))
         #if type(next_status) == int:
         if end:
             result = next_status
         current_status = next_status
+    print("Finish predict! ", LogicSequence)
     return result
 
 def check_ready():
@@ -255,6 +277,7 @@ def check_ready():
         print("Update status", statushandler.updated)
     print("Initialize loading of first 10s completed")
 
+
 def inference_monitoring():
     check_ready()
     start_loop = time.time()
@@ -264,7 +287,7 @@ def inference_monitoring():
     run_time = 3600
     global x_data, y_data
     for i in range(run_time):
-        if statushandler.updated:
+        if statushandler.updated and not statushandler.prompting:
             # Inference Preprocess
             TIME_STEP.append(i)
             total_passengers = mvp_v4_inference()
@@ -280,24 +303,39 @@ def inference_monitoring():
             print("Predicts memory: ", statushandler.predict_memory)
         # print(x_data)
         # print(y_data)
-        time.sleep(3)
-
+        if not statushandler.start:
+            time.sleep(2)
+        else:
+            time.sleep(1.5)
     end_loop = time.time() - start_loop
     print(f"Completed 100 predicts in {end_loop}")
 
+
 def prompt_settings():
-    statushandler.str_true_label_of_interest = input("Enter the true label of interest ")
-    statushandler.pax_count_of_interest = statushandler.str_true_label_of_interest.split("+")
+    statushandler.prompting = True
+    statushandler.str_true_label_of_interest = input("Enter the true label of interest (E.g \"NOT D\" or \"D+FP\")\n").upper()
+    if "not" in statushandler.str_true_label_of_interest:
+        statushandler.not_collection = True
+        statushandler.str_true_label_of_interest= statushandler.str_true_label_of_interest.split(" ")[1]
+    else:
+        statushandler.str_true_label_of_interest = statushandler.str_true_label_of_interest.replace(" ", "")
+    statushandler.pax_count_of_interest = len(statushandler.str_true_label_of_interest.split("+"))
     try:
         statushandler.directory = metadata.SAVE_DATA_DICT[statushandler.str_true_label_of_interest]
-        statushandler.save_incorrect_only = input("Save incorrect predicts only? (y/n) ")
+        statushandler.save_incorrect_only = True if input("Save incorrect predicts only? (y/n) \n").lower() == "y" else False
         print("Label", statushandler.str_true_label_of_interest)
+        print("Not collection: ", statushandler.not_collection)
         print("directory to save", statushandler.directory)
-        print("Save incorerct only", statushandler.save_incorrect_only)
+        print("Save incorrect only", statushandler.save_incorrect_only)
+        print("Pax count of interest", statushandler.pax_count_of_interest)
+        time.sleep(5)
+        statushandler.start = True
+
     except Exception as e:
         print(e)
         statushandler.start = False
         print(f"Failed to start! Key {statushandler.str_true_label_of_interest} does not exist in the label dict!")
+    statushandler.prompting = False
 
 
 
@@ -309,6 +347,7 @@ if __name__ == "__main__":
 listener = keyboard.Listener(on_press=on_press)
 listener_thread = Thread(target=listener.start)
 listener_thread.start()
+
 
 # Collect and remember the data
 update_data_static = Thread(target=collect_and_save_data_static_loop)
@@ -323,11 +362,11 @@ collection = Thread(target=inference_monitoring)
 collection.start()
 
 # Collect video feed stream data
-streaming_thread = Thread(target=CCTVHandler.stream)
-streaming_thread.start()
+# streaming_thread = Thread(target=CCTVHandler.stream)
+# streaming_thread.start()
 
 # Infer and update the predicts of CCTV model
-infer_thread = Thread(target=CCTVHandler.infer_and_save)
-infer_thread.start()
+'''infer_thread = Thread(target=CCTVHandler.infer_and_save)
+infer_thread.start()'''
 
 Live_Visualize.visualization_main()
