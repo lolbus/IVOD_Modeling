@@ -12,3 +12,5 @@
 10. notebooks/IVOD_Deeplearning_Trainer_V2.ipynb - (MLOps Related) Second version of model trained, developed in Early July 23  
 11. notebooks/Data_Deeplearning_Trainer_CompiledTensor_V3.ipynb - (MLOps Related) The third version of model trained, the final non-static setup uses this trainer. Developed in mid July 23  
 12. IVOD_SplitDBSCAN/IVOD_SplitDBSCAN/bin/Debug/net7.0/IVOD_SplitDBSCAN.exe - (MLOps Related) This is an app essential to run the DBScan live inference done by Nicholas during his departure. run record_and_save.py followed by this executable file to visualize the prediction and raw plot points on a matplotlib diagram.  
+
+Last updated 28 Aug 2023 by Teng Guang Way, Wayne
